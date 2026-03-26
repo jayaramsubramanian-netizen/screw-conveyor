@@ -1,0 +1,262 @@
+"""
+Screw Conveyor Designer API  v2.0  -  FastAPI + SQLite
+Run: uvicorn main:app --reload --port 8000
+"""
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Any, Dict, List
+import traceback
+from pathlib import Path
+
+from core.db import init_db, query as db_query, execute as db_exec
+from models.schemas import ConveyorInput, FamilyDesignInput
+from core.databases import get_costs, get_motor_sizes_list
+import core.cema as cema_engine, core.kws as kws_engine, core.din as din_engine
+from core.family_designer import design_family
+from core.process_modules import (
+    MixerInput, DryerInput, CoolerInput, SeparatorInput,
+    ReactorInput, CompactorInput,
+    calculate_mixer, calculate_dryer, calculate_cooler,
+    calculate_separator, calculate_reactor, calculate_compactor,
+)
+from pydantic import BaseModel
+
+init_db()
+
+app = FastAPI(title="Screw Conveyor Designer API", version="2.0.0")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+ENGINE_MAP = {"CEMA": cema_engine, "KWS": kws_engine, "DIN": din_engine}
+
+@app.get("/health")
+def health(): return {"status":"ok","version":"2.0.0"}
+
+# ── Materials CRUD ─────────────────────────────────────────────────────────
+@app.get("/db/materials")
+def list_materials(search: str = ""):
+    if search:
+        rows = db_query("SELECT * FROM materials WHERE name LIKE ? ORDER BY name",(f"%{search}%",))
+    else:
+        rows = db_query("SELECT * FROM materials ORDER BY name")
+    return {"count":len(rows),"materials":rows}
+
+@app.get("/db/materials/{name}")
+def get_material_route(name: str):
+    rows = db_query("SELECT * FROM materials WHERE name=?",(name,))
+    if not rows: raise HTTPException(404,f"'{name}' not found")
+    return rows[0]
+
+class MaterialCreate(BaseModel):
+    name: str; bulk_density: float; lambda_cema: float=1.5; lambda_kws: float=1.55
+    lambda_din: float=1.5; trough_loading: float=0.30; Ks: float=1.0; abrasive: str="Low"
+    wear_coeff: float=1.0; cema_class: str="II"; angle_of_repose: float=35.0
+    particle_size_mm: float=10.0; moisture_pct: float=0.0; temperature_c: float=20.0; notes: str=""
+
+@app.post("/db/materials", status_code=201)
+def create_material(mat: MaterialCreate):
+    if db_query("SELECT id FROM materials WHERE name=?",(mat.name,)):
+        raise HTTPException(409,f"'{mat.name}' already exists")
+    lid = db_exec("""INSERT INTO materials (name,bulk_density,lambda_cema,lambda_kws,lambda_din,
+        trough_loading,Ks,abrasive,wear_coeff,cema_class,angle_of_repose,particle_size_mm,
+        moisture_pct,temperature_c,notes,custom) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)""",
+        (mat.name,mat.bulk_density,mat.lambda_cema,mat.lambda_kws,mat.lambda_din,
+         mat.trough_loading,mat.Ks,mat.abrasive,mat.wear_coeff,mat.cema_class,
+         mat.angle_of_repose,mat.particle_size_mm,mat.moisture_pct,mat.temperature_c,mat.notes))
+    return {"id":lid,"message":f"Material '{mat.name}' created"}
+
+@app.put("/db/materials/{name}")
+def update_material(name: str, mat: MaterialCreate):
+    if not db_query("SELECT id FROM materials WHERE name=?",(name,)): raise HTTPException(404)
+    db_exec("""UPDATE materials SET bulk_density=?,lambda_cema=?,lambda_kws=?,lambda_din=?,
+        trough_loading=?,Ks=?,abrasive=?,wear_coeff=?,cema_class=?,angle_of_repose=?,
+        particle_size_mm=?,moisture_pct=?,temperature_c=?,notes=?,custom=1,updated_at=datetime('now')
+        WHERE name=?""",
+        (mat.bulk_density,mat.lambda_cema,mat.lambda_kws,mat.lambda_din,mat.trough_loading,
+         mat.Ks,mat.abrasive,mat.wear_coeff,mat.cema_class,mat.angle_of_repose,
+         mat.particle_size_mm,mat.moisture_pct,mat.temperature_c,mat.notes,name))
+    return {"message":f"'{name}' updated"}
+
+@app.delete("/db/materials/{name}")
+def delete_material(name: str):
+    rows = db_query("SELECT custom FROM materials WHERE name=?",(name,))
+    if not rows: raise HTTPException(404)
+    if not rows[0]["custom"]: raise HTTPException(403,"Cannot delete built-in material")
+    db_exec("DELETE FROM materials WHERE name=?",(name,))
+    return {"message":"Deleted"}
+
+# ── Bearings CRUD ──────────────────────────────────────────────────────────
+@app.get("/db/bearings")
+def list_bearings(): return {"bearings":db_query("SELECT * FROM bearings ORDER BY C_kN")}
+
+class BearingCreate(BaseModel):
+    name: str; C_kN: float; p: float=3.0; description: str=""; bore_mm: float=0
+
+@app.post("/db/bearings",status_code=201)
+def create_bearing(b: BearingCreate):
+    db_exec("INSERT INTO bearings (name,C_kN,p,description,bore_mm,custom) VALUES (?,?,?,?,?,1)",
+            (b.name,b.C_kN,b.p,b.description,b.bore_mm)); return {"message":"Created"}
+
+@app.put("/db/bearings/{name}")
+def update_bearing(name:str,b:BearingCreate):
+    db_exec("UPDATE bearings SET C_kN=?,p=?,description=?,bore_mm=? WHERE name=?",
+            (b.C_kN,b.p,b.description,b.bore_mm,name)); return {"message":"Updated"}
+
+@app.delete("/db/bearings/{name}")
+def delete_bearing(name:str):
+    rows=db_query("SELECT custom FROM bearings WHERE name=?",(name,))
+    if not rows: raise HTTPException(404)
+    if not rows[0]["custom"]: raise HTTPException(403,"Built-in")
+    db_exec("DELETE FROM bearings WHERE name=?",(name,)); return {"message":"Deleted"}
+
+# ── Gearboxes CRUD ─────────────────────────────────────────────────────────
+@app.get("/db/gearboxes")
+def list_gearboxes(): return {"gearboxes":db_query("SELECT * FROM gearboxes ORDER BY max_torque_Nm")}
+
+class GearboxCreate(BaseModel):
+    model: str; max_torque_Nm: float; thermal_power_kW: float; thermal_sf: float=1.0
+
+@app.post("/db/gearboxes",status_code=201)
+def create_gearbox(g:GearboxCreate):
+    db_exec("INSERT INTO gearboxes (model,max_torque_Nm,thermal_power_kW,thermal_sf,custom) VALUES (?,?,?,?,1)",
+            (g.model,g.max_torque_Nm,g.thermal_power_kW,g.thermal_sf)); return {"message":"Created"}
+
+@app.put("/db/gearboxes/{model}")
+def update_gearbox(model:str,g:GearboxCreate):
+    db_exec("UPDATE gearboxes SET max_torque_Nm=?,thermal_power_kW=?,thermal_sf=? WHERE model=?",
+            (g.max_torque_Nm,g.thermal_power_kW,g.thermal_sf,model)); return {"message":"Updated"}
+
+@app.delete("/db/gearboxes/{model}")
+def delete_gearbox(model:str):
+    rows=db_query("SELECT custom FROM gearboxes WHERE model=?",(model,))
+    if not rows: raise HTTPException(404)
+    if not rows[0]["custom"]: raise HTTPException(403,"Built-in")
+    db_exec("DELETE FROM gearboxes WHERE model=?",(model,)); return {"message":"Deleted"}
+
+# ── Costs ──────────────────────────────────────────────────────────────────
+@app.get("/db/costs")
+def list_costs(): return {"costs":db_query("SELECT * FROM costs ORDER BY item")}
+
+class CostUpdate(BaseModel):
+    usd_per_kg: float; notes: str=""
+
+@app.put("/db/costs/{item}")
+def update_cost(item:str,c:CostUpdate):
+    db_exec("UPDATE costs SET usd_per_kg=?,notes=?,updated_at=datetime('now') WHERE item=?",
+            (c.usd_per_kg,c.notes,item)); return {"message":"Updated"}
+
+@app.post("/db/costs",status_code=201)
+def create_cost(item:str=Query(...),usd_per_kg:float=Query(...),notes:str=""):
+    db_exec("INSERT OR REPLACE INTO costs (item,usd_per_kg,notes) VALUES (?,?,?)",(item,usd_per_kg,notes))
+    return {"message":"Created"}
+
+# ── Motors ─────────────────────────────────────────────────────────────────
+@app.get("/db/motors")
+def list_motors(): return {"motor_sizes_kw":get_motor_sizes_list()}
+
+@app.post("/db/motors",status_code=201)
+def add_motor(kW:float=Query(...)):
+    if db_query("SELECT id FROM motors WHERE kW=?",(kW,)): raise HTTPException(409,"Already exists")
+    db_exec("INSERT INTO motors (kW,custom) VALUES (?,1)",(kW,)); return {"message":"Added"}
+
+# ── Conveyor Calculations ──────────────────────────────────────────────────
+@app.post("/calculate")
+def calculate(inp:ConveyorInput):
+    try:
+        eng = ENGINE_MAP.get(inp.standard)
+        if not eng: raise HTTPException(400,f"Unknown: {inp.standard}")
+        return eng.calculate(inp)
+    except ValueError as e: raise HTTPException(400,str(e))
+    except Exception as e: raise HTTPException(500,traceback.format_exc())
+
+@app.post("/calculate/all")
+def calculate_all(inp:ConveyorInput):
+    results={}
+    for std,eng in ENGINE_MAP.items():
+        try: results[std]=eng.calculate(inp.model_copy(update={"standard":std})).model_dump()
+        except Exception as e: results[std]={"error":str(e)}
+    return results
+
+@app.post("/sweep/speed")
+def sweep_speed(inp:ConveyorInput):
+    eng=ENGINE_MAP.get(inp.standard,cema_engine); out=[]
+    for N in range(10,210,10):
+        try:
+            r=eng.calculate(inp.model_copy(update={"speed_rpm":float(N)}))
+            out.append({"speed_rpm":N,"capacity_t_h":r.capacity.achieved_t_h,
+                        "power_kW":r.power.P_total_kW,"motor_kW":r.power.motor_selected_kW,
+                        "torque_Nm":r.torque.running_Nm})
+        except: pass
+    return {"sweep":out,"standard":inp.standard}
+
+@app.post("/sweep/diameter")
+def sweep_diameter(inp:ConveyorInput):
+    eng=ENGINE_MAP.get(inp.standard,cema_engine); out=[]
+    for D in [0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.60]:
+        try:
+            r=eng.calculate(inp.model_copy(update={"trough_diameter_m":D,"pitch_m":D}))
+            out.append({"diameter_mm":int(D*1000),"capacity_t_h":r.capacity.achieved_t_h,
+                        "power_kW":r.power.P_total_kW,"cost_usd":r.cost.estimated_cost_usd})
+        except: pass
+    return {"sweep":out,"standard":inp.standard}
+
+@app.post("/sweep/length")
+def sweep_length(inp:ConveyorInput):
+    eng=ENGINE_MAP.get(inp.standard,cema_engine); out=[]
+    for L in [5,8,10,12,15,18,20,25,30,35,40,45,50]:
+        try:
+            r=eng.calculate(inp.model_copy(update={"length_m":float(L)}))
+            out.append({"length_m":L,"power_kW":r.power.P_total_kW,
+                        "cost_usd":r.cost.estimated_cost_usd,"L10_hours":r.bearing.L10_hours})
+        except: pass
+    return {"sweep":out,"standard":inp.standard}
+
+@app.post("/family/design")
+def family_design_route(inp:FamilyDesignInput):
+    try: return design_family(inp)
+    except Exception as e: raise HTTPException(500,str(e))
+
+@app.post("/family/matrix")
+def family_matrix(inp:FamilyDesignInput):
+    family=design_family(inp); matrix={}
+    for pt in family.points:
+        key=f"{pt.diameter_mm}mm"
+        if key not in matrix: matrix[key]={}
+        matrix[key][f"{pt.length_m}m"]={"capacity":pt.max_capacity_t_h,"power":pt.power_kW,
+            "motor":pt.motor_kW,"cost":pt.cost_usd,"L10":pt.L10_hours}
+    return {"matrix":matrix,"diameters":[f"{d}mm" for d in inp.diameters_mm],
+            "lengths":[f"{l}m" for l in inp.lengths_m],"material":inp.material,"standard":inp.standard}
+
+# ── Process Modules ────────────────────────────────────────────────────────
+@app.post("/process/mixer")
+def proc_mixer(inp:MixerInput):
+    try: return calculate_mixer(inp)
+    except Exception as e: raise HTTPException(500,str(e))
+
+@app.post("/process/dryer")
+def proc_dryer(inp:DryerInput):
+    try: return calculate_dryer(inp)
+    except Exception as e: raise HTTPException(500,str(e))
+
+@app.post("/process/cooler")
+def proc_cooler(inp:CoolerInput):
+    try: return calculate_cooler(inp)
+    except Exception as e: raise HTTPException(500,str(e))
+
+@app.post("/process/separator")
+def proc_separator(inp:SeparatorInput):
+    try: return calculate_separator(inp)
+    except Exception as e: raise HTTPException(500,str(e))
+
+@app.post("/process/reactor")
+def proc_reactor(inp:ReactorInput):
+    try: return calculate_reactor(inp)
+    except Exception as e: raise HTTPException(500,str(e))
+
+@app.post("/process/compactor")
+def proc_compactor(inp:CompactorInput):
+    try: return calculate_compactor(inp)
+    except Exception as e: raise HTTPException(500,str(e))
+
+if __name__=="__main__":
+    import uvicorn
+    uvicorn.run("main:app",host="127.0.0.1",port=8000,reload=True)
