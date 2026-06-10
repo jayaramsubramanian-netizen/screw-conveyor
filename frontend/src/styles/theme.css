@@ -1,0 +1,405 @@
+/*
+ * ═══════════════════════════════════════════════════════════════════
+ * VECTRIX™ — JAYVEECONS INDUSTRIAL THEME
+ * Polished stainless steel + deep navy engineering aesthetic
+ * Inspired by machined metal panels and industrial precision instruments
+ * ═══════════════════════════════════════════════════════════════════
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500;700&family=Barlow:wght@300;400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap');
+
+/* ── COLOUR TOKENS ─────────────────────────────────────────────── */
+:root {
+  /* Backgrounds — deep navy panels, like an instrument cluster */
+  --color-bg-app:      #07111e;
+  --color-bg-panel:    #0d1c2e;
+  --color-bg-input:    #060f1a;
+  --color-bg-hi:       #132238;
+  --color-bg-overlay:  rgba(6,15,26,.97);
+
+  /* Borders */
+  --color-border:      #162438;
+  --color-border-hi:   #1c3050;
+
+  /* Typography — from the manual */
+  --color-text:        #ddeaf6;
+  --color-muted:       #5a7a9a;
+  --color-muted2:      #7a9ab8;
+  --color-faint:       #3a5470;
+
+  /* Brand accent — Jayveecons crimson red */
+  --color-accent:      #c8192e;
+  --color-accent-dim:  rgba(200,25,46,.12);
+  --color-accent2:     #a01122;
+
+  /* Functional colours */
+  --color-blue:        #4a9eff;
+  --color-green:       #1fb86e;
+  --color-red:         #e05252;
+  --color-amber:       #d98e00;
+  --color-teal:        #2dd4bf;
+  --color-purple:      #a78bfa;
+  --color-orange:      #fb923c;
+
+  /* Status */
+  --status-ok:    var(--color-green);
+  --status-warn:  var(--color-amber);
+  --status-error: var(--color-red);
+  --status-info:  var(--color-blue);
+
+  /* Chart series */
+  --chart-1: #4a9eff;
+  --chart-2: #c8192e;
+  --chart-3: #1fb86e;
+  --chart-4: #a78bfa;
+  --chart-5: #2dd4bf;
+  --chart-6: #e05252;
+  --chart-7: #fb923c;
+  --chart-8: #fbbf24;
+
+  /* ── FONTS — matching manual exactly ── */
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-ui:      'Barlow', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Cascadia Code', monospace;
+  --font-condensed:'Barlow Condensed', sans-serif;
+
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 14px;
+  --text-md:   16px;
+  --text-lg:   20px;
+  --text-xl:   26px;
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-bold:   700;
+  --weight-black:  800;
+
+  --tracking-tight:  -0.01em;
+  --tracking-wide:    0.05em;
+  --tracking-wider:   0.08em;
+  --tracking-widest:  0.14em;
+
+  /* ── SPACING ── */
+  --space-1:  6px;  --space-2: 12px; --space-3: 15px;
+  --space-4: 18px;  --space-5: 21px; --space-6: 24px;
+  --space-8: 30px;  --space-10:36px;
+
+  /* ── RADIUS ── */
+  --radius-sm:  4px; --radius-md: 6px;
+  --radius-lg:  8px; --radius-xl:10px;
+  --radius-pill:20px;
+
+  /* ── SHADOWS ── */
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.35);
+  --shadow-md: 0 2px 12px rgba(0,0,0,.50);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,.65);
+
+  /* ── NAVIGATION ── */
+  --nav-height: 56px;
+  --nav-bg:     transparent;
+  --nav-border: var(--color-border);
+  --tab-active: var(--color-accent);
+
+  /* ── STAINLESS STEEL GRADIENTS ── */
+  --steel-titlebar: linear-gradient(180deg,
+    #6e7e8a 0%, #8fa0ac 8%, #c0ced8 22%,
+    #d8e4ec 35%, #c4d0da 48%,
+    #9daebb 62%, #7a8d9c 74%,
+    #8fa0ac 84%, #b8c8d4 92%, #9db0bc 100%);
+
+  --steel-menubar: linear-gradient(180deg,
+    #4a5862 0%, #637280 12%, #8fa0ac 28%,
+    #b0c2cc 45%, #9db0bc 58%,
+    #6e8090 72%, #56686e 84%, #647480 92%, #4a5862 100%);
+
+  --steel-edge-top:    linear-gradient(90deg, #b0bfc8 0%, #e8f0f4 25%, #c8d6de 50%, #e4eef2 75%, #aabbc6 100%);
+  --steel-edge-bottom: linear-gradient(90deg, #3a4850 0%, #5a6870 25%, #3a4850 50%, #6a7a84 75%, #3a4850 100%);
+
+  /* ── LAYOUT ── */
+  --panel-input-width: 400px;
+  --sidebar-width:     270px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * GLOBAL RESET
+ * ═══════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-ui);
+  color: var(--color-text);
+  background: var(--color-bg-app);
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background: var(--color-bg-app);
+  line-height: 1.5;
+  zoom: 1.5;
+}
+
+/* Thin scrollbars */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-hi); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #2a4060; }
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.num { font-family: var(--font-mono); }
+
+/* ═══════════════════════════════════════════════════════════════════
+ * POLISHED STAINLESS STEEL NAVIGATION
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* Title bar — brightest steel band */
+.vx-titlebar {
+  background: var(--steel-titlebar) !important;
+  border-bottom: 1px solid #3a4850 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.55),
+    inset 0 -1px 0 rgba(0,0,0,0.35),
+    0 2px 6px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+/* Thin bright specular line at very top */
+.vx-titlebar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--steel-edge-top);
+  opacity: 0.9;
+}
+
+/* Text on steel titlebar */
+.vx-titlebar * { text-shadow: 0 1px 1px rgba(255,255,255,0.15), 0 -1px 1px rgba(0,0,0,0.4) !important; }
+.vx-titlebar .brand-text    { color: #1a1a1a !important; }
+.vx-titlebar .brand-accent  { color: var(--color-accent) !important; }
+.vx-titlebar .muted-text    { color: #4a5860 !important; }
+
+/* Menu bar — slightly darker steel band */
+.vx-menubar {
+  background: var(--steel-menubar) !important;
+  border-bottom: 2px solid #2a3840 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    inset 0 -1px 0 rgba(0,0,0,0.5),
+    0 3px 10px rgba(0,0,0,0.6);
+  position: relative;
+}
+
+.vx-menubar::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--steel-edge-bottom);
+}
+
+/* Menu text on steel */
+.vx-menubar button {
+  color: #0d1a22 !important;
+  font-family: var(--font-condensed) !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.3), 0 -1px 0 rgba(0,0,0,0.2) !important;
+}
+
+.vx-menubar button:hover {
+  background: rgba(0,0,0,0.15) !important;
+  color: #000 !important;
+}
+
+/* Active page indicator in menu */
+.vx-menubar .menu-active {
+  color: var(--color-accent) !important;
+  text-shadow: 0 0 8px rgba(200,25,46,0.5) !important;
+}
+
+/* Dropdown menus — go back to dark panel for readability */
+.vx-menubar .dropdown {
+  background: #0d1c2e !important;
+  border: 1px solid #2a4a72 !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
+}
+
+.vx-menubar .dropdown button {
+  color: var(--color-text) !important;
+  font-family: var(--font-ui) !important;
+  font-weight: 400 !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  text-shadow: none !important;
+}
+
+.vx-menubar .dropdown button:hover {
+  background: rgba(200,25,46,0.1) !important;
+  color: var(--color-accent) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * TYPOGRAPHY — matching manual heading hierarchy
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* Display headings use DM Serif like the manual */
+.vx-h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--color-text);
+  line-height: 1.15;
+}
+
+.vx-h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-blue);
+  line-height: 1.2;
+}
+
+/* Section labels — condensed uppercase like Jayveecons site */
+.vx-section-label {
+  font-family: var(--font-condensed);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+/* Crimson accent rule like the manual */
+.vx-section-label::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 2px;
+  background: var(--color-accent);
+  border-radius: 1px;
+  margin-right: 7px;
+  vertical-align: middle;
+}
+
+/* Card accent strips — top border on panels */
+.vx-panel-accent {
+  border-top: 2px solid var(--color-accent);
+}
+
+/* Monospace data values */
+.vx-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* Body copy — matches manual's #b8cfdf */
+.vx-body {
+  color: #b8cfdf;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * CONTENT PANELS — dark navy with subtle steel edge
+ * ═══════════════════════════════════════════════════════════════════ */
+
+.vx-card {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle top highlight on cards — hints at polished edge */
+.vx-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 70%, transparent);
+  pointer-events: none;
+}
+
+/* Input fields */
+input[type="number"], input[type="text"], select, textarea {
+  background: var(--color-bg-input) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text) !important;
+  font-family: var(--font-mono) !important;
+  border-radius: var(--radius-sm) !important;
+  transition: border-color 0.15s !important;
+}
+
+input[type="number"]:focus, input[type="text"]:focus, select:focus {
+  border-color: var(--color-accent) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(200,25,46,0.15) !important;
+}
+
+/* Primary CTA buttons */
+.vx-btn-primary {
+  background: linear-gradient(180deg, #d41e32 0%, var(--color-accent) 50%, #a01122 100%);
+  border: 1px solid #7a0e1a;
+  color: #fff;
+  font-family: var(--font-condensed);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(200,25,46,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.vx-btn-primary:hover {
+  background: linear-gradient(180deg, #e02038 0%, #d41e32 50%, #b01422 100%);
+  box-shadow: 0 4px 14px rgba(200,25,46,0.55), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+/* Recalculate button */
+button[disabled] {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * DIVIDERS — section separators like manual
+ * ═══════════════════════════════════════════════════════════════════ */
+
+hr, .vx-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 20px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * ANIMATIONS
+ * ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes vx-fadein {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.vx-fadein { animation: vx-fadein 0.25s ease; }
+
+/* Steel brush texture overlay on nav — pure CSS */
+@keyframes steel-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
