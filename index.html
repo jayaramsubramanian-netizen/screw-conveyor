@@ -1,0 +1,162 @@
+from pydantic import BaseModel, Field
+from typing import Optional, List, Literal, Dict, Any
+
+# ── Inputs ─────────────────────────────────────────────────────────────────
+
+class ConveyorInput(BaseModel):
+    # Material
+    material: str = "Cement"
+    capacity_t_h: float = Field(30.0, gt=0, description="Required capacity (t/h)")
+    length_m: float = Field(20.0, gt=0, le=100, description="Conveyor length (m)")
+    angle_deg: float = Field(0.0, ge=-20, le=45, description="Inclination angle (deg) — CEMA limit ±45")
+    vertical: bool = False
+    ambient_delta_t: float = Field(30.0, description="Ambient temperature rise (°C)")
+    surge_factor: float = Field(1.2, ge=1.0, le=2.0, description="Surge/overload factor")
+
+    # Geometry — trough
+    trough_diameter_m: float = Field(0.3, gt=0.05, le=1.2, description="Trough inner diameter (m)")
+    pitch_m: float = Field(0.3, gt=0, description="Screw pitch (m)")
+    speed_rpm: float = Field(60.0, gt=5, le=300, description="Shaft speed (RPM)")
+    flight_thickness_m: float = Field(0.008, ge=0.002, le=0.05, description="Flight plate thickness (m)")
+    wear_allowance_m: float = Field(0.003, gt=0, description="Wear allowance before replacement (m)")
+
+    # Shaft configuration
+    shaft_type: Literal["bar", "pipe"] = "bar"
+    pipe_od_mm: float = Field(80.0, ge=30, le=400, description="Pipe shaft OD (mm) — only used when shaft_type=pipe")
+    pipe_wall_mm: float = Field(8.0, ge=3, le=40, description="Pipe shaft wall thickness (mm)")
+
+    # Drive / Bearings
+    bearing_type: str = "UC210"
+    hangers_count: int = Field(2, ge=0, le=20)
+    end_bearings_count: int = Field(2, ge=1, le=4)
+    bearing_load_kN: float = Field(10.0, gt=0, description="Applied dynamic bearing load (kN)")
+    gearbox_model: str = "GB-40k"
+    shaft_allow_shear_mpa: float = Field(40.0, ge=10, le=160, description="Allowable shaft shear stress (MPa)")
+    E_gpa: float = Field(200.0, description="Shaft material Young's modulus (GPa)")
+
+    # Standard
+    standard: Literal["CEMA", "KWS", "DIN"] = "CEMA"
+
+    # Legacy alias — populated automatically
+    @property
+    def diameter_m(self) -> float:
+        return self.trough_diameter_m
+
+
+class FamilyDesignInput(BaseModel):
+    material: str = "Cement"
+    diameters_mm: List[int] = [150, 200, 250, 300, 400, 500, 600]
+    lengths_m: List[float] = [5.0, 10.0, 15.0, 20.0, 25.0, 30.0]
+    angle_deg: float = 0.0
+    surge_factor: float = 1.2
+    standard: Literal["CEMA", "KWS", "DIN"] = "CEMA"
+    trough_loading_override: Optional[float] = None
+
+
+# ── Sub-result models ───────────────────────────────────────────────────────
+
+class CapacityResult(BaseModel):
+    volumetric_m3h: float
+    achieved_t_h: float
+    required_t_h: float
+    capacity_ok: bool
+    fill_fraction: float
+
+class PowerResult(BaseModel):
+    P_empty_kW: float
+    P_material_kW: float
+    P_incline_kW: float
+    P_total_kW: float
+    P_shaft_kW: float
+    motor_selected_kW: float
+    motor_efficiency: float = 0.90
+
+class TorqueResult(BaseModel):
+    running_Nm: float
+    startup_Nm: float
+    shaft_od_mm: float
+    shaft_id_mm: float = 0.0
+    is_pipe: bool = False
+    actual_shear_mpa: float
+    shear_ok: bool
+
+class BearingResult(BaseModel):
+    bearing_type: str
+    C_kN: float
+    P_applied_kN: float
+    exponent: float
+    L10_hours: float
+    L10_million_rev: float
+
+class WearResult(BaseModel):
+    wear_coefficient: float
+    usable_thickness_m: float
+    estimated_life_hours: float
+    estimated_life_tons: float
+
+class GearboxResult(BaseModel):
+    model: str
+    max_torque_Nm: float
+    thermal_power_kW: float
+    thermal_sf: float
+    required_power_kW: float
+    torque_ok: bool
+    thermal_ok: bool
+
+class CostResult(BaseModel):
+    steel_weight_kg: float
+    material_type: str
+    unit_cost_usd_kg: float
+    estimated_cost_usd: float
+
+class EfficiencyResult(BaseModel):
+    cap_util_pct: float         # actual / max achievable capacity %
+    kWh_per_tonne: float        # energy intensity kWh/t
+    fill_fraction_pct: float    # trough fill %
+    design_score: int           # 0–100 overall score
+
+class MaterialRecsResult(BaseModel):
+    trough: List[str]
+    flight: List[str]
+    shaft: List[str]
+    treatments: List[str]
+    notes: List[str]
+
+class CalculationResult(BaseModel):
+    standard: str
+    material: str
+    inputs: ConveyorInput
+    capacity: CapacityResult
+    power: PowerResult
+    torque: TorqueResult
+    bearing: BearingResult
+    wear: WearResult
+    gearbox: GearboxResult
+    cost: CostResult
+    efficiency: EfficiencyResult
+    material_recs: MaterialRecsResult
+    warnings: List[str]
+    errors: List[str]
+
+# ── Family designer output ──────────────────────────────────────────────────
+
+class FamilyPoint(BaseModel):
+    diameter_mm: int
+    length_m: float
+    max_capacity_t_h: float
+    speed_rpm: float
+    power_kW: float
+    motor_kW: float
+    torque_Nm: float
+    L10_hours: float
+    cost_usd: float
+    kWh_per_tonne: float
+    pitch_m: float
+
+class FamilyResult(BaseModel):
+    standard: str
+    material: str
+    angle_deg: float
+    points: List[FamilyPoint]
+    diameter_series: List[int]
+    length_series: List[float]
