@@ -11,3 +11,4 @@ pyqtgraph>=0.13.7      # interactive charts (line, bar, regime map)
 numpy>=1.26.0          # pyqtgraph dependency + engineering arrays
 matplotlib>=3.9.0      # PDF report figure generation only
 requests>=2.32.0       # backend API calls (when backend exists)
+

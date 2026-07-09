@@ -1,21 +1,13 @@
 """
 widgets.py — VECTRIX™ shared primitive widgets
 ═══════════════════════════════════════════════════════════════════════════
-Direct port of the bucket-elevator equivalents. Every class here is a
-1-for-1 match to its bucket-elevator counterpart so the two applications
-look identical when docked side by side.
-
-ColHeader      → identical to bucket elevator ColHeader
-Placeholder    → identical — honest labeled gap
-NavTabButton   → identical pill geometry, same fixed-height trick
-ModulePill     → identical
-KpiChip        → identical custom-painted chip
-FailWarnBadges → inline factory, same badge style
+Direct port of the bucket-elevator equivalents — ColHeader, Placeholder,
+NavTabButton, ModulePill, KpiChip, fail_warn_badges.
+No backend dependency in this file.
 """
 
 from PySide6.QtWidgets import (
     QWidget, QFrame, QLabel, QPushButton, QHBoxLayout, QVBoxLayout,
-    QSizePolicy,
 )
 from PySide6.QtCore import Qt, QRect, QRectF
 from PySide6.QtGui import QPainter, QColor, QFont, QPen
@@ -28,13 +20,11 @@ from theme import (
 )
 
 
-# ── ColHeader ────────────────────────────────────────────────────────────
 class ColHeader(QFrame):
-    """Fixed-height column header with optional sub-label and right-side
-    action widget.  Identical to the bucket-elevator version."""
+    """Fixed-height column header — label + optional sub + optional action widget."""
 
-    def __init__(self, label: str, sub: str = None, action: QWidget = None,
-                 parent=None):
+    def __init__(self, label: str, sub: str = None,
+                 action: QWidget = None, parent=None):
         super().__init__(parent)
         self.setFixedHeight(36)
         self.setStyleSheet(
@@ -61,7 +51,6 @@ class ColHeader(QFrame):
             layout.addWidget(action)
 
 
-# ── Placeholder ──────────────────────────────────────────────────────────
 class Placeholder(QWidget):
     """Honest labeled gap — not a fake implementation."""
 
@@ -82,21 +71,18 @@ class Placeholder(QWidget):
         )
         title_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        layout.addWidget(icon_lbl)
+        layout.addWidget(title_lbl)
+
         if note:
             note_lbl = QLabel(note)
             note_lbl.setStyleSheet(f"color: {MUTED}; font-size: 10px;")
             note_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        layout.addWidget(icon_lbl)
-        layout.addWidget(title_lbl)
-        if note:
             layout.addWidget(note_lbl)
 
 
-# ── NavTabButton ─────────────────────────────────────────────────────────
 class NavTabButton(QPushButton):
-    """Tab pill button.  Uses setFixedHeight + exact-half border-radius
-    for a guaranteed stadium shape — same fix as bucket elevator."""
+    """Tab pill — checked = PRIMARY fill, unchecked = transparent."""
 
     def __init__(self, label: str, parent=None):
         super().__init__(label, parent)
@@ -114,8 +100,7 @@ class NavTabButton(QPushButton):
             self.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {PRIMARY}; color: white;
-                    border-style: none; border-width: 0px;
-                    border-radius: {TAB_PILL_RADIUS}px;
+                    border-style: none; border-radius: {TAB_PILL_RADIUS}px;
                     padding: 0px 16px; font-size: 12.5px; font-weight: 600;
                 }}
             """)
@@ -123,18 +108,15 @@ class NavTabButton(QPushButton):
             self.setStyleSheet(f"""
                 QPushButton {{
                     background-color: transparent; color: {TEXT3};
-                    border-style: none; border-width: 0px;
-                    border-radius: {TAB_PILL_RADIUS}px;
+                    border-style: none; border-radius: {TAB_PILL_RADIUS}px;
                     padding: 0px 16px; font-size: 12.5px;
                 }}
                 QPushButton:hover {{ background-color: {PANEL2}; color: {TEXT2}; }}
             """)
 
 
-# ── ModulePill ───────────────────────────────────────────────────────────
 class ModulePill(QPushButton):
-    """Platform-level module switcher pill.  Active = solid PRIMARY fill;
-    inactive = transparent with hover.  Disabled = muted, non-clickable."""
+    """Platform module switcher pill."""
 
     def __init__(self, icon: str, label: str, active: bool = False,
                  enabled: bool = True, parent=None):
@@ -145,15 +127,11 @@ class ModulePill(QPushButton):
             Qt.CursorShape.PointingHandCursor if enabled
             else Qt.CursorShape.ArrowCursor
         )
-        if not enabled:
-            self.setToolTip(f"{label} — switch to that application window")
-
         if active:
             self.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {PRIMARY}; color: white;
-                    border-style: none; border-width: 0px;
-                    border-radius: {MODULE_PILL_RADIUS}px;
+                    border-style: none; border-radius: {MODULE_PILL_RADIUS}px;
                     padding: 0px 14px; font-size: 12px; font-weight: 600;
                 }}
             """)
@@ -161,8 +139,7 @@ class ModulePill(QPushButton):
             self.setStyleSheet(f"""
                 QPushButton {{
                     background-color: transparent; color: {TEXT3};
-                    border-style: none; border-width: 0px;
-                    border-radius: {MODULE_PILL_RADIUS}px;
+                    border-style: none; border-radius: {MODULE_PILL_RADIUS}px;
                     padding: 0px 14px; font-size: 12px;
                 }}
                 QPushButton:disabled {{ color: {MUTED}; }}
@@ -170,10 +147,8 @@ class ModulePill(QPushButton):
             """)
 
 
-# ── KpiChip ──────────────────────────────────────────────────────────────
 class KpiChip(QWidget):
-    """Custom-painted KPI chip — label top-left, unit top-right, large
-    value centred.  Identical to bucket elevator KPIChip."""
+    """Custom-painted KPI chip — label top-left, unit top-right, large value centred."""
 
     _W, _H = 88, 52
 
@@ -196,29 +171,27 @@ class KpiChip(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         W, H = self._W, self._H
 
-        # background + border
         p.setPen(QPen(QColor(self._color), 1.2))
         p.setBrush(QColor(PANEL2))
         p.drawRoundedRect(QRectF(0.6, 0.6, W - 1.2, H - 1.2), 8, 8)
 
-        # label (top-left)
         p.setPen(QColor(TEXT3))
-        f_small = QFont(); f_small.setPixelSize(9); f_small.setBold(True)
+        f_small = QFont()
+        f_small.setPixelSize(9)
+        f_small.setBold(True)
         p.setFont(f_small)
         p.drawText(QRect(7, 5, W // 2, 14), Qt.AlignmentFlag.AlignLeft, self._label)
-
-        # unit (top-right)
         p.drawText(QRect(W // 2, 5, W // 2 - 7, 14), Qt.AlignmentFlag.AlignRight, self._unit)
 
-        # value (centred)
         p.setPen(QColor(self._color))
-        f_val = QFont(); f_val.setPixelSize(20); f_val.setBold(True)
+        f_val = QFont()
+        f_val.setPixelSize(20)
+        f_val.setBold(True)
         p.setFont(f_val)
         p.drawText(QRect(0, 12, W, H - 8), Qt.AlignmentFlag.AlignCenter, self._value)
         p.end()
 
 
-# ── FailWarnBadges ────────────────────────────────────────────────────────
 def fail_warn_badges(n_fail: int, n_warn: int) -> QWidget:
     """Small FAIL / WARN pill row for a ColHeader action slot."""
     box = QWidget()

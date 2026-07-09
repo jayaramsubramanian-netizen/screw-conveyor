@@ -1,6 +1,4 @@
-"""
-components/__init__.py — VECTRIX™ Screw Conveyor component package.
-"""
+"""components/__init__.py"""
 from components.widgets import (
     ColHeader, Placeholder, NavTabButton, ModulePill, KpiChip,
     fail_warn_badges,
