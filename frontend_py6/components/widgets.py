@@ -4,7 +4,16 @@ widgets.py — VECTRIX™ shared primitive widgets
 Direct port of the bucket-elevator equivalents — ColHeader, Placeholder,
 NavTabButton, ModulePill, KpiChip, fail_warn_badges.
 No backend dependency in this file.
+
+Pylance fixes applied:
+  - ColHeader.sub / action use Optional[str] / Optional[QWidget]
+  - ModulePill parent uses Optional[QWidget]
+  - QRectF imported from QtCore (not QtGui) for PySide6 ≥ 6.4
 """
+
+from __future__ import annotations
+
+from typing import Optional
 
 from PySide6.QtWidgets import (
     QWidget, QFrame, QLabel, QPushButton, QHBoxLayout, QVBoxLayout,
@@ -23,8 +32,13 @@ from theme import (
 class ColHeader(QFrame):
     """Fixed-height column header — label + optional sub + optional action widget."""
 
-    def __init__(self, label: str, sub: str = None,
-                 action: QWidget = None, parent=None):
+    def __init__(
+        self,
+        label: str,
+        sub: Optional[str] = None,
+        action: Optional[QWidget] = None,
+        parent: Optional[QWidget] = None,
+    ):
         super().__init__(parent)
         self.setFixedHeight(36)
         self.setStyleSheet(
@@ -47,14 +61,19 @@ class ColHeader(QFrame):
             text_box.addWidget(sub_lbl)
         layout.addLayout(text_box)
         layout.addStretch()
-        if action:
+        if action is not None:
             layout.addWidget(action)
 
 
 class Placeholder(QWidget):
     """Honest labeled gap — not a fake implementation."""
 
-    def __init__(self, title: str, note: str = "", parent=None):
+    def __init__(
+        self,
+        title: str,
+        note: str = "",
+        parent: Optional[QWidget] = None,
+    ):
         super().__init__(parent)
         self.setStyleSheet(f"background-color: {BG};")
         layout = QVBoxLayout(self)
@@ -84,18 +103,18 @@ class Placeholder(QWidget):
 class NavTabButton(QPushButton):
     """Tab pill — checked = PRIMARY fill, unchecked = transparent."""
 
-    def __init__(self, label: str, parent=None):
+    def __init__(self, label: str, parent: Optional[QWidget] = None):
         super().__init__(label, parent)
         self.setCheckable(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFixedHeight(TAB_PILL_HEIGHT)
         self._apply_style()
 
-    def setChecked(self, checked: bool):
+    def setChecked(self, checked: bool) -> None:
         super().setChecked(checked)
         self._apply_style()
 
-    def _apply_style(self):
+    def _apply_style(self) -> None:
         if self.isChecked():
             self.setStyleSheet(f"""
                 QPushButton {{
@@ -118,8 +137,14 @@ class NavTabButton(QPushButton):
 class ModulePill(QPushButton):
     """Platform module switcher pill."""
 
-    def __init__(self, icon: str, label: str, active: bool = False,
-                 enabled: bool = True, parent=None):
+    def __init__(
+        self,
+        icon: str,
+        label: str,
+        active: bool = False,
+        enabled: bool = True,
+        parent: Optional[QWidget] = None,
+    ):
         super().__init__(f"{icon}  {label}", parent)
         self.setEnabled(enabled)
         self.setFixedHeight(MODULE_PILL_HEIGHT)
@@ -152,7 +177,7 @@ class KpiChip(QWidget):
 
     _W, _H = 88, 52
 
-    def __init__(self, label: str, unit: str, parent=None):
+    def __init__(self, label: str, unit: str, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setFixedSize(self._W, self._H)
         self._label = label
@@ -160,20 +185,20 @@ class KpiChip(QWidget):
         self._value = "—"
         self._color = TEXT3
 
-    def set_value(self, value: str, color: str = None):
+    def set_value(self, value: str, color: Optional[str] = None) -> None:
         self._value = value
-        if color:
+        if color is not None:
             self._color = color
         self.update()
 
-    def paintEvent(self, event):
+    def paintEvent(self, event) -> None:  # type: ignore[override]
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         W, H = self._W, self._H
 
         p.setPen(QPen(QColor(self._color), 1.2))
         p.setBrush(QColor(PANEL2))
-        p.drawRoundedRect(QRectF(0.6, 0.6, W - 1.2, H - 1.2), 8, 8)
+        p.drawRoundedRect(QRectF(0.6, 0.6, W - 1.2, H - 1.2), 8.0, 8.0)
 
         p.setPen(QColor(TEXT3))
         f_small = QFont()

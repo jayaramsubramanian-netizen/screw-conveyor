@@ -5,17 +5,22 @@ AppTitleBar  48 px  brand + module switcher + backend status + PDF button
 PageMenuBar  28 px  Conveyor / Process / Reference pull-down menus
 TopNav       76 px  app dropdown + tab pills + KPI chips
 
-Backend health indicator: a small coloured dot (●) in AppTitleBar shows
-green/red depending on whether the FastAPI server is reachable.
-Checked once at startup via api_client.health_check().
+Pylance fixes applied:
+  - QAction constructed with parent only; shortcut/triggered wired separately
+    (PySide6 ≥ 6.4 removed keyword-argument overloads for QAction.__init__)
+  - All Optional[] annotations added to parent parameters
 """
+
+from __future__ import annotations
+
+from typing import Optional
 
 from PySide6.QtWidgets import (
     QFrame, QWidget, QHBoxLayout, QVBoxLayout,
     QLabel, QPushButton, QMenu,
 )
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QKeySequence
 
 from theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
@@ -29,13 +34,34 @@ from components.widgets import (
 )
 
 
+# ── helpers ───────────────────────────────────────────────────────────────
+
+def _action(
+    label: str,
+    parent: QWidget,
+    shortcut: Optional[str] = None,
+    slot=None,
+) -> QAction:
+    """
+    Build a QAction without using removed keyword overloads.
+    PySide6 ≥ 6.4: QAction(parent) is the safe constructor;
+    everything else is set via setters.
+    """
+    act = QAction(label, parent)
+    if shortcut:
+        act.setShortcut(QKeySequence(shortcut))
+    if slot is not None:
+        act.triggered.connect(slot)
+    return act
+
+
 # ── AppTitleBar ───────────────────────────────────────────────────────────
 class AppTitleBar(QFrame):
     """48 px platform bar — brand | module switcher | backend status | PDF."""
 
     pdf_requested = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setFixedHeight(48)
         self.setStyleSheet(
@@ -125,8 +151,7 @@ class AppTitleBar(QFrame):
         )
         layout.addWidget(version_lbl)
 
-    def set_backend_status(self, online: bool):
-        """Called once at startup after health_check()."""
+    def set_backend_status(self, online: bool) -> None:
         if online:
             self._backend_dot.setStyleSheet(f"color: {SUCCESS}; font-size: 14px;")
             self._backend_dot.setToolTip("Backend: connected")
@@ -161,7 +186,7 @@ class PageMenuBar(QFrame):
         QPushButton::menu-indicator {{ image: none; }}
     """
 
-    def __init__(self, current_page: str = "calc", parent=None):
+    def __init__(self, current_page: str = "calc", parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._current = current_page
         self.setFixedHeight(28)
@@ -183,18 +208,17 @@ class PageMenuBar(QFrame):
 
             for page_id in group["pages"]:
                 meta = PAGE_META[page_id]
-                action = QAction(f"{meta['icon']}  {meta['label']}", self)
-                action.triggered.connect(
+                act = _action(f"{meta['icon']}  {meta['label']}", self)
+                act.triggered.connect(
                     lambda checked, pid=page_id: self.page_changed.emit(pid)
                 )
-                menu.addAction(action)
+                menu.addAction(act)
 
             btn.setMenu(menu)
             layout.addWidget(btn)
 
         layout.addStretch()
 
-        # Active module indicator (right)
         self._active_lbl = QLabel()
         self._active_lbl.setStyleSheet(
             f"color: {ACCENT}; font-size: 10.5px; font-weight: 700; "
@@ -203,10 +227,12 @@ class PageMenuBar(QFrame):
         self.set_active_page(current_page)
         layout.addWidget(self._active_lbl)
 
-    def set_active_page(self, page_id: str):
+    def set_active_page(self, page_id: str) -> None:
         self._current = page_id
         meta = PAGE_META.get(page_id, {})
-        self._active_lbl.setText(f"{meta.get('icon','')}  {meta.get('label', page_id)}")
+        self._active_lbl.setText(
+            f"{meta.get('icon', '')}  {meta.get('label', page_id)}"
+        )
 
 
 # ── TopNav ────────────────────────────────────────────────────────────────
@@ -225,7 +251,7 @@ class TopNav(QFrame):
         QMenu::separator {{ height: 1px; background-color: {BORDER}; margin: 4px 8px; }}
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setFixedHeight(76)
         self.setStyleSheet(
@@ -251,26 +277,32 @@ class TopNav(QFrame):
 
         app_menu = QMenu(app_btn)
         app_menu.setStyleSheet(self._MENU_QSS)
-        self._act_maximize = QAction("Maximize", self)
-        self._act_maximize.triggered.connect(self._toggle_maximize)
+
+        # Maximize toggle — needs instance reference so store it
+        self._act_maximize = _action("Maximize", self, slot=self._toggle_maximize)
+
         app_menu.addAction(
-            QAction("Minimize", self,
-                    triggered=lambda: self.window().showMinimized()))
+            _action("Minimize", self, slot=lambda: self.window().showMinimized())
+        )
         app_menu.addAction(self._act_maximize)
         app_menu.addSeparator()
         app_menu.addAction(
-            QAction("New Project…", self, shortcut="Ctrl+N",
-                    triggered=lambda: self._stub("New Project")))
+            _action("New Project…", self, shortcut="Ctrl+N",
+                    slot=lambda: self._stub("New Project"))
+        )
         app_menu.addAction(
-            QAction("Open Design…", self, shortcut="Ctrl+O",
-                    triggered=lambda: self._stub("Open Design")))
+            _action("Open Design…", self, shortcut="Ctrl+O",
+                    slot=lambda: self._stub("Open Design"))
+        )
         app_menu.addAction(
-            QAction("Save Design", self, shortcut="Ctrl+S",
-                    triggered=lambda: self._stub("Save Design")))
+            _action("Save Design", self, shortcut="Ctrl+S",
+                    slot=lambda: self._stub("Save Design"))
+        )
         app_menu.addSeparator()
         app_menu.addAction(
-            QAction("Exit", self, shortcut="Ctrl+Q",
-                    triggered=lambda: self.window().close()))
+            _action("Exit", self, shortcut="Ctrl+Q",
+                    slot=lambda: self.window().close())
+        )
         app_btn.setMenu(app_menu)
         layout.addWidget(app_btn)
 
@@ -296,7 +328,7 @@ class TopNav(QFrame):
 
         layout.addStretch()
 
-        # KPI chips — Q (capacity), P (power), η (efficiency score)
+        # KPI chips
         kpi_row = QHBoxLayout()
         kpi_row.setSpacing(10)
         self.kpi_chips: dict[str, KpiChip] = {}
@@ -307,14 +339,7 @@ class TopNav(QFrame):
         layout.addLayout(kpi_row)
 
     # ── public update slots ───────────────────────────────────────────────
-    def update_kpis(self, results: dict):
-        """
-        Reads keys from the backend response schema (schemas.py):
-            Qt      float   achieved capacity t/h
-            cap_ok  bool    Qt >= required
-            Pt      float   total installed power kW
-            eff_score int   design efficiency 0-100
-        """
+    def update_kpis(self, results: dict) -> None:
         r = results or {}
 
         qt = r.get("Qt")
@@ -332,7 +357,7 @@ class TopNav(QFrame):
             col = SUCCESS if score >= 70 else (WARNING if score >= 45 else DANGER)
             self.kpi_chips["η"].set_value(str(int(score)), col)
 
-    def update_fail_badge(self, n_fail: int):
+    def update_fail_badge(self, n_fail: int) -> None:
         base = next(
             (t["label"] for t in CALC_TABS if t["id"] == "checks"), "Checks"
         )
@@ -341,12 +366,12 @@ class TopNav(QFrame):
         self.tab_buttons["checks"]._apply_style()
 
     # ── internals ─────────────────────────────────────────────────────────
-    def _select_tab(self, tab_id: str):
+    def _select_tab(self, tab_id: str) -> None:
         for tid, btn in self.tab_buttons.items():
             btn.setChecked(tid == tab_id)
         self.tab_changed.emit(tab_id)
 
-    def _toggle_maximize(self):
+    def _toggle_maximize(self) -> None:
         win = self.window()
         if win.isMaximized():
             win.showNormal()
@@ -356,5 +381,5 @@ class TopNav(QFrame):
             self._act_maximize.setText("Restore")
 
     @staticmethod
-    def _stub(name: str):
+    def _stub(name: str) -> None:
         print(f"[{name}] not yet wired.")

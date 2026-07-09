@@ -24,6 +24,9 @@ Then run this app:
     python main.py
 """
 
+from __future__ import annotations
+
+from typing import Optional
 import sys
 
 from PySide6.QtWidgets import (
@@ -257,7 +260,7 @@ class ShellWindow(QMainWindow):
             label = PAGE_META.get(page_id, {}).get("label", page_id.upper())
             self._swap_col3_header(label)
 
-    def _update_col3_header(self, tab_id: str | None):
+    def _update_col3_header(self, tab_id: Optional[str]) -> None:
         if tab_id is None:
             return
         label  = CALC_TAB_LABELS.get(tab_id, "Results")
@@ -267,14 +270,14 @@ class ShellWindow(QMainWindow):
             action = fail_warn_badges(n_fail, n_warn)
         self._swap_col3_header(label, action)
 
-    def _swap_col3_header(self, label: str, action=None):
+    def _swap_col3_header(self, label: str, action: Optional[QWidget] = None) -> None:
         new_header = ColHeader(label, action=action)
         self._c3l.replaceWidget(self._col3_header, new_header)
         self._col3_header.deleteLater()
         self._col3_header = new_header
 
     # ── Calculation ───────────────────────────────────────────────────────
-    def run_calculation(self, payload: dict = None):
+    def run_calculation(self, payload: Optional[dict] = None) -> None:
         """
         Called whenever inputs change.
         Mirrors bucket-elevator run_calculation() exactly:
