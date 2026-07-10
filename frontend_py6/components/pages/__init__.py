@@ -1,18 +1,13 @@
 """
 components/pages/__init__.py — one QWidget per application page.
-All honest Placeholders at this stage, replaced one by one in later sessions.
+
+CalcPage is now InputSidebarPanel in components/pages/calc_page.py.
+All other pages remain honest Placeholders until their session arrives.
 """
 from components.widgets import Placeholder
 
 
-class CalcPage(Placeholder):
-    def __init__(self, parent=None):
-        super().__init__(
-            "🔩  Screw Conveyor Designer",
-            "InputSidebarPanel + ScrewViz2D + ResultsCards — next to implement",
-            parent,
-        )
-
+# ── Non-calc pages ────────────────────────────────────────────────────────
 
 class FamilyPage(Placeholder):
     def __init__(self, parent=None):
@@ -90,7 +85,7 @@ class DatabasePage(Placeholder):
     def __init__(self, parent=None):
         super().__init__(
             "🗄️  Material Database",
-            "GET /api/materials  →  24-material table",
+            "GET /api/materials  →  full material table",
             parent,
         )
 
