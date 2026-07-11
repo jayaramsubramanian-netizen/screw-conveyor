@@ -1,0 +1,15 @@
+# VECTRIX™ Screw Conveyor Designer — PySide6 desktop frontend
+# Run: pip install -r frontend_py6/requirements.txt
+#
+# Deliberately separate from backend/requirements.txt — this file has
+# no pydantic/Rust dependency chain, so it installs cleanly even on
+# machines without a C++/Rust build toolchain.
+#
+# Backend must be running separately:
+#   uvicorn backend.main:app --reload
+
+PySide6>=6.7.0
+pyqtgraph>=0.13.7      # interactive charts (line, bar, regime map)
+numpy>=1.26.0          # pyqtgraph dependency + engineering arrays
+matplotlib>=3.9.0      # PDF report figure generation only
+requests>=2.32.0       # HTTP calls to FastAPI backend

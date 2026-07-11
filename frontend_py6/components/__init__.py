@@ -5,8 +5,10 @@ from components.widgets import (
 )
 from components.shell import AppTitleBar, TopNav, PageMenuBar
 from components.pages import (
-    CalcPage, FamilyPage, FeederPage,
+    FamilyPage, FeederPage,
     MixerPage, DryerPage, CoolerPage,
     SeparatorPage, ReactorPage, CompactorPage,
     DatabasePage, ManualPage,
 )
+# CalcPage (InputSidebarPanel) imported directly in main.py
+# from components.pages.calc_page import InputSidebarPanel

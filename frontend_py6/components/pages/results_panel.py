@@ -234,8 +234,11 @@ class WarnsBanner(QWidget):
         # Clear old
         while self._layout.count():
             item = self._layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            if item is None:
+                continue
+            w = item.widget()
+            if w is not None:
+                w.deleteLater()
 
         cfg = {
             "crit": ("❌", DANGER,  "CRITICAL"),
@@ -310,17 +313,6 @@ class CapacityCard(_Card):
             f"color: {col}; font-size: 22px; font-weight: 800; "
             f"font-family: 'Consolas', monospace;"
         )
-
-        def _upd(key: str, val: str, color: str = TEXT) -> None:
-            old = self._rows.get(key)
-            if old:
-                self._body.removeWidget(old)
-                old.deleteLater()
-            new = _kv_row(key, val, color)
-            self._rows[key] = new
-            # re-insert at correct position (after divider = index 2)
-            # Simple approach: rebuild via set_data doesn't need positional insert
-            self._body.addWidget(new)
 
         # Rebuild cleanly each call
         for key, w in self._rows.items():
@@ -455,11 +447,7 @@ class ShaftCard(_Card):
         mode = r.get("shaft_mode", "auto")
         ok   = tor.get("shOk", False)
 
-        # Update badge
-        new_badge = _ok_badge(ok)
-        # Replace badge in header — find it and swap
-        hdr = self.findChild(QWidget, "")
-        # Simpler: just update text/style of existing badge
+        # Update badge text/style in place (header ref kept at construction)
         self._ok_badge_ref.setText("PASS" if ok else "FAIL")
         self._ok_badge_ref.setStyleSheet(
             f"background-color: {SUCCESS if ok else DANGER}22; "
