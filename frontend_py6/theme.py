@@ -55,7 +55,7 @@ CALC_TABS = [
     {"id": "design",     "label": "Results"},
     {"id": "optimizer",  "label": "Optimizer",  "badge": "AI"},
     {"id": "checks",     "label": "Checks",     "failBadge": True},
-    {"id": "components", "label": "Components"},
+    {"id": "axial",      "label": "Axial Profile"},
     {"id": "wear",       "label": "Wear & Life"},
     {"id": "structural", "label": "Structural"},
     {"id": "materials",  "label": "Materials"},

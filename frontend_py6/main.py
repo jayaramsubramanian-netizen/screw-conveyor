@@ -41,7 +41,7 @@ from theme import (
     BG, PANEL, BORDER, PRIMARY,
     CALC_TABS, DEFAULT_PAYLOAD,
 )
-from api_client import fetch_design, fetch_process, health_check
+from api_client import fetch_design, fetch_process, fetch_axial_profile, health_check
 from components import (
     AppTitleBar, TopNav, PageMenuBar,
     ColHeader, Placeholder, fail_warn_badges,
@@ -52,6 +52,7 @@ from components import (
 )
 from components.pages.calc_page import InputSidebarPanel
 from components.pages.results_panel import ResultsPanel
+from components.pages.axial_panel import AxialProfilePanel
 
 # ── Page registry — non-calc pages only (calc uses InputSidebarPanel) ─────
 PAGE_REGISTRY = [
@@ -152,14 +153,21 @@ class ShellWindow(QMainWindow):
         self._c3l.addWidget(self._col3_header)
 
         # Inner stack: one view per calc tab.
-        # "design" is now the live ResultsPanel — all others remain
-        # honest Placeholders until their session arrives.
+        # "design" is the live ResultsPanel, "axial" is the live
+        # AxialProfilePanel — all others remain honest Placeholders
+        # until their session arrives.
         self._calc_tab_stack = QStackedWidget()
         self._results_panel: Optional[ResultsPanel] = None
+        self._axial_panel: Optional[AxialProfilePanel] = None
+        self._axial_loaded_for: Optional[str] = None  # payload signature cache
         for t in CALC_TABS:
             if t["id"] == "design":
                 self._results_panel = ResultsPanel()
                 self._calc_tab_stack.addWidget(self._results_panel)
+            elif t["id"] == "axial":
+                self._axial_panel = AxialProfilePanel()
+                self._axial_panel.refresh_requested.connect(self._on_axial_refresh)
+                self._calc_tab_stack.addWidget(self._axial_panel)
             else:
                 self._calc_tab_stack.addWidget(Placeholder(
                     t["label"],
@@ -254,6 +262,8 @@ class ShellWindow(QMainWindow):
             self._calc_tab_stack.setCurrentIndex(
                 CALC_TAB_INDEX.get(tab_id, 0)
             )
+            if tab_id == "axial":
+                self._maybe_fetch_axial()
         self._update_col3_header(
             tab_id if self._current_page == "calc" else None
         )
@@ -345,6 +355,42 @@ class ShellWindow(QMainWindow):
 
         if self._current_tab == "design" and self._current_page == "calc":
             self._update_col3_header("design")
+
+        # New payload → axial profile (if previously loaded) is stale.
+        # Don't auto-refetch here (avoids a network call on every
+        # debounced keystroke) — just invalidate the cache so the next
+        # time the Axial Profile tab is opened it fetches fresh data.
+        self._axial_loaded_for = None
+
+    # ── Axial profile (lazy fetch) ──────────────────────────────────────────
+    def _maybe_fetch_axial(self) -> None:
+        """
+        Called when the Axial Profile tab becomes active. Fetches only if
+        the current payload hasn't already been loaded (avoids refetching
+        on every tab click when nothing has changed).
+        """
+        sig = str(self._last_payload)
+        if sig == self._axial_loaded_for:
+            return
+        self._fetch_axial(self._axial_panel.segments_value() if self._axial_panel else 60)
+
+    def _on_axial_refresh(self, segments: int) -> None:
+        """User clicked Refresh or changed the Segments spinbox + Refresh."""
+        self._fetch_axial(segments)
+
+    def _fetch_axial(self, segments: int) -> None:
+        if self._axial_panel is None:
+            return
+        self._axial_panel.set_loading()
+        response = fetch_axial_profile({
+            "inp": self._last_payload,
+            "segments": segments,
+        })
+        if response.get("error"):
+            self._axial_panel.set_error(response.get("message", "Unknown error"))
+            return
+        self._axial_panel.set_data(response)
+        self._axial_loaded_for = str(self._last_payload)
 
     # ── PDF ───────────────────────────────────────────────────────────────
     def _on_pdf_requested(self) -> None:

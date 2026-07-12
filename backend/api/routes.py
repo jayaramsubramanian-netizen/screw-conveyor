@@ -2,6 +2,22 @@
 FastAPI route definitions.
 All heavy physics stays in core/engine.py — routes only handle
 HTTP, DB lookup, and response shaping.
+
+Pylance fixes applied in this pass:
+  - axial_profile(): build_axial_profile() returns list[dict]; each dict
+    is now converted into an AxialSegment instance before being handed
+    to AxialProfileResult(segments=...), which expects List[AxialSegment].
+  - All `if not X.custom:` conditionals wrapped in bool(getattr(...))
+    since SQLAlchemy's declarative Column[bool] class-level type makes
+    Pylance treat instance-level truthiness as invalid (Column.__bool__
+    raises at the class-definition level even though instance access
+    returns a real bool at runtime). This is a static-analysis false
+    positive, not a runtime bug — the wrapper changes nothing at runtime.
+  - All `obj.custom = True` assignments changed to
+    setattr(obj, "custom", True) for the same reason — direct attribute
+    assignment against a Column-typed class attribute trips
+    reportAttributeAccessIssue even though it's a normal ORM instance
+    write at runtime.
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -118,7 +134,15 @@ def axial_profile(payload: AxialProfileInput, db: Session = Depends(get_db)):
     R = calc_engine(inp, mat, brg, gbx, db=db)
 
     from ..core.axial import build_axial_profile
-    segments = build_axial_profile(inp, R, mat, payload.segments)
+    raw_segments = build_axial_profile(inp, R, mat, payload.segments)
+
+    # build_axial_profile() returns plain dicts; AxialProfileResult
+    # requires List[AxialSegment], so convert each entry explicitly
+    # rather than relying on FastAPI's response_model coercion alone.
+    segments = [
+        s if isinstance(s, AxialSegment) else AxialSegment(**s)
+        for s in raw_segments
+    ]
     return AxialProfileResult(segments=segments)
 
 
@@ -250,7 +274,7 @@ def update_material(name: str, payload: dict, db: Session = Depends(get_db)):
     m = db.query(Material).filter(Material.name == name).first()
     if not m:
         raise HTTPException(404, f"Material '{name}' not found")
-    if not m.custom:
+    if not bool(getattr(m, "custom", False)):
         raise HTTPException(403, "Built-in CEMA materials are read-only. Create a custom copy instead.")
     for k, v in payload.items():
         if hasattr(m, k):
@@ -264,7 +288,7 @@ def delete_material(name: str, db: Session = Depends(get_db)):
     m = db.query(Material).filter(Material.name == name).first()
     if not m:
         raise HTTPException(404)
-    if not m.custom:
+    if not bool(getattr(m, "custom", False)):
         raise HTTPException(403, "Built-in CEMA materials cannot be deleted.")
     db.delete(m); db.commit()
     return {"deleted": name}
@@ -342,7 +366,7 @@ def update_bearing(name: str, payload: dict, db: Session = Depends(get_db)):
     for k, v in payload.items():
         if hasattr(obj, k):
             setattr(obj, k, v)
-    obj.custom = True
+    setattr(obj, "custom", True)
     db.commit(); db.refresh(obj)
     return obj
 
@@ -351,7 +375,7 @@ def delete_bearing(name: str, db: Session = Depends(get_db)):
     obj = db.query(Bearing).filter(Bearing.name == name).first()
     if not obj:
         raise HTTPException(404)
-    if not obj.custom:
+    if not bool(getattr(obj, "custom", False)):
         raise HTTPException(403, "Built-in bearings are read-only. Create a custom copy instead.")
     db.delete(obj); db.commit()
     return {"deleted": name}
@@ -378,7 +402,7 @@ def update_gearbox(model: str, payload: dict, db: Session = Depends(get_db)):
     for k, v in payload.items():
         if hasattr(obj, k):
             setattr(obj, k, v)
-    obj.custom = True
+    setattr(obj, "custom", True)
     db.commit(); db.refresh(obj)
     return obj
 
@@ -387,7 +411,7 @@ def delete_gearbox(model: str, db: Session = Depends(get_db)):
     obj = db.query(Gearbox).filter(Gearbox.model == model).first()
     if not obj:
         raise HTTPException(404)
-    if not obj.custom:
+    if not bool(getattr(obj, "custom", False)):
         raise HTTPException(403, "Built-in gearboxes are read-only. Create a custom copy instead.")
     db.delete(obj); db.commit()
     return {"deleted": model}
@@ -418,7 +442,7 @@ def update_motor(model: str, payload: dict, db: Session = Depends(get_db)):
     for k, v in payload.items():
         if hasattr(obj, k):
             setattr(obj, k, v)
-    obj.custom = True
+    setattr(obj, "custom", True)
     db.commit(); db.refresh(obj)
     return obj
 
@@ -427,7 +451,7 @@ def delete_motor(model: str, db: Session = Depends(get_db)):
     obj = db.query(Motor).filter(Motor.model == model).first()
     if not obj:
         raise HTTPException(404)
-    if not obj.custom:
+    if not bool(getattr(obj, "custom", False)):
         raise HTTPException(403, "Built-in motors are read-only. Create a custom copy instead.")
     db.delete(obj); db.commit()
     return {"deleted": model}
@@ -458,7 +482,7 @@ def update_drive(model: str, payload: dict, db: Session = Depends(get_db)):
     for k, v in payload.items():
         if hasattr(obj, k):
             setattr(obj, k, v)
-    obj.custom = True
+    setattr(obj, "custom", True)
     db.commit(); db.refresh(obj)
     return obj
 
@@ -467,7 +491,7 @@ def delete_drive(model: str, db: Session = Depends(get_db)):
     obj = db.query(Drive).filter(Drive.model == model).first()
     if not obj:
         raise HTTPException(404)
-    if not obj.custom:
+    if not bool(getattr(obj, "custom", False)):
         raise HTTPException(403, "Built-in drives are read-only. Create a custom copy instead.")
     db.delete(obj); db.commit()
     return {"deleted": model}
@@ -498,7 +522,7 @@ def update_cost(item: str, payload: dict, db: Session = Depends(get_db)):
     for k, v in payload.items():
         if hasattr(obj, k):
             setattr(obj, k, v)
-    obj.custom = True
+    setattr(obj, "custom", True)
     db.commit(); db.refresh(obj)
     return obj
 
@@ -507,7 +531,7 @@ def delete_cost(item: str, db: Session = Depends(get_db)):
     obj = db.query(CostItem).filter(CostItem.item == item).first()
     if not obj:
         raise HTTPException(404)
-    if not obj.custom:
+    if not bool(getattr(obj, "custom", False)):
         raise HTTPException(403, "Built-in cost items are read-only. Create a custom copy instead.")
     db.delete(obj); db.commit()
     return {"deleted": item}
