@@ -35,6 +35,7 @@ from theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT, PURPLE, TEAL,
 )
+from components.screw_viz import ScrewViz2D
 
 
 # ── formatting helpers ────────────────────────────────────────────────────
@@ -820,6 +821,11 @@ class ResultsPanel(QWidget):
         self._grid.setColumnStretch(0, 1)
         self._grid.setColumnStretch(1, 1)
 
+        # ── 2D Visualizer (full width, below the card grid) ──────────────
+        self._viz = ScrewViz2D(title="Screw Conveyor")
+        self._viz.setFixedHeight(360)
+        self._body_layout.addWidget(self._viz)
+
         self._body_layout.addStretch()
         scroll.setWidget(body)
         outer.addWidget(scroll)
@@ -840,3 +846,4 @@ class ResultsPanel(QWidget):
         self._gbx.set_data(result)
         self._eff.set_data(result)
         self._cost.set_data(result)
+        self._viz.set_data(result)
