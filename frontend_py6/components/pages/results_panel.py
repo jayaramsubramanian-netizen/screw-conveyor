@@ -36,6 +36,7 @@ from theme import (
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT, PURPLE, TEAL,
 )
 from components.screw_viz import ScrewViz2D
+from components.model_number import generate_model_number
 
 
 # ── formatting helpers ────────────────────────────────────────────────────
@@ -212,6 +213,77 @@ class _Card(QFrame):
 
     def _add_kv_badge(self, key: str, val: str, ok: bool) -> None:
         self._add(_kv_row_badge(key, val, ok))
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 0. ModelNumberBadge
+# ══════════════════════════════════════════════════════════════════════════
+
+class ModelNumberBadge(QFrame):
+    """
+    VECTOMEC™ model number strip — top of the Results tab, above the
+    warnings banner. Shows the full generated string plus a segment
+    breakdown row underneath.
+
+    See components/model_number.py for the derivation logic and the
+    two flagged gaps (Food Grade / Process / Live Bottom Feeder series
+    can't be derived from conveyor-only inputs; drive code always
+    resolves to Gearmotor until VFD is wired into EngineInput).
+    """
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.setStyleSheet(
+            f"background-color: rgba(232,160,0,.07); "
+            f"border: 1px solid rgba(232,160,0,.3); border-radius: 8px;"
+        )
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(14, 8, 14, 8)
+        lay.setSpacing(2)
+
+        top = QHBoxLayout()
+        top.setSpacing(8)
+
+        icon = QLabel("🔩")
+        icon.setStyleSheet("font-size: 13px;")
+        top.addWidget(icon)
+
+        self._model_lbl = QLabel("VM-—-—-—-—-—-—")
+        self._model_lbl.setStyleSheet(
+            f"color: {ACCENT}; font-size: 15px; font-weight: 800; "
+            f"font-family: 'Consolas', monospace; letter-spacing: .5px;"
+        )
+        top.addWidget(self._model_lbl)
+        top.addStretch()
+
+        self._series_lbl = QLabel("")
+        self._series_lbl.setStyleSheet(
+            f"color: {TEXT3}; font-size: 10px; font-weight: 600;"
+        )
+        top.addWidget(self._series_lbl)
+
+        lay.addLayout(top)
+
+        self._breakdown_lbl = QLabel("")
+        self._breakdown_lbl.setStyleSheet(
+            f"color: {MUTED}; font-size: 9px; font-family: 'Consolas', monospace;"
+        )
+        self._breakdown_lbl.setWordWrap(True)
+        lay.addWidget(self._breakdown_lbl)
+
+    def set_data(self, result: dict) -> None:
+        if not result or result.get("error"):
+            return
+        mn = generate_model_number(result)
+
+        self._model_lbl.setText(mn.full_string)
+        self._series_lbl.setText(mn.series_label.upper())
+        self._breakdown_lbl.setText(
+            f"{mn.series_code}=Series({mn.series_label})  ·  "
+            f"{mn.diameter_mm}=Ø mm  ·  {mn.length_dm}=Length dm  ·  "
+            f"{mn.pitch_code}=Pitch({mn.pitch_label})  ·  "
+            f"{mn.material_code}=Trough  ·  {mn.drive_code}=Drive(Gearmotor)"
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -784,6 +856,10 @@ class ResultsPanel(QWidget):
         self._body_layout.setContentsMargins(10, 8, 10, 10)
         self._body_layout.setSpacing(8)
 
+        # Model number (top, full width)
+        self._model_badge = ModelNumberBadge()
+        self._body_layout.addWidget(self._model_badge)
+
         # Warnings banner (top, full width)
         self._warns = WarnsBanner()
         self._body_layout.addWidget(self._warns)
@@ -838,6 +914,7 @@ class ResultsPanel(QWidget):
         if not result or result.get("error"):
             return
 
+        self._model_badge.set_data(result)
         self._warns.set_data(result.get("warns", {}))
         self._cap.set_data(result)
         self._pwr.set_data(result)

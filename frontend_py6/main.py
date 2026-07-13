@@ -53,6 +53,7 @@ from components import (
 from components.pages.calc_page import InputSidebarPanel
 from components.pages.results_panel import ResultsPanel
 from components.pages.axial_panel import AxialProfilePanel
+from components.pages.status_panel import StatusPanel
 
 # ── Page registry — non-calc pages only (calc uses InputSidebarPanel) ─────
 PAGE_REGISTRY = [
@@ -188,16 +189,13 @@ class ShellWindow(QMainWindow):
 
         self._c3l.addWidget(self._page_stack)
 
-        # ── col4 : Status / KPI (placeholder) ────────────────────────────
+        # ── col4 : Status / Design Health ─────────────────────────────────
         self._col4 = QWidget()
         c4l = QVBoxLayout(self._col4)
         c4l.setContentsMargins(0, 0, 0, 0)
         c4l.setSpacing(0)
-        c4l.addWidget(ColHeader("Status"))
-        c4l.addWidget(Placeholder(
-            "Status Panel",
-            "KpiGrid — capacity, power, torque, wear, L10 — next session",
-        ))
+        self._status_panel = StatusPanel()
+        c4l.addWidget(self._status_panel)
 
         # ── Splitter ──────────────────────────────────────────────────────
         self._splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -352,6 +350,11 @@ class ShellWindow(QMainWindow):
         # not process modules (those get their own results view later)
         if self._current_page == "calc" and self._results_panel is not None:
             self._results_panel.set_data(results)
+
+        # Design Health (col4) — always live for the conveyor calculator,
+        # regardless of which calc tab is active
+        if self._current_page == "calc":
+            self._status_panel.set_data(results, payload)
 
         if self._current_tab == "design" and self._current_page == "calc":
             self._update_col3_header("design")
