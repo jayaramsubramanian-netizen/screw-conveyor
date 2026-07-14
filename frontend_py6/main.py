@@ -54,6 +54,7 @@ from components.pages.calc_page import InputSidebarPanel
 from components.pages.results_panel import ResultsPanel
 from components.pages.axial_panel import AxialProfilePanel
 from components.pages.status_panel import StatusPanel
+from components.pages.optimizer_panel import AutoOptimizerPanel
 
 # ── Page registry — non-calc pages only (calc uses InputSidebarPanel) ─────
 PAGE_REGISTRY = [
@@ -160,6 +161,7 @@ class ShellWindow(QMainWindow):
         self._calc_tab_stack = QStackedWidget()
         self._results_panel: Optional[ResultsPanel] = None
         self._axial_panel: Optional[AxialProfilePanel] = None
+        self._optimizer_panel: Optional[AutoOptimizerPanel] = None
         self._axial_loaded_for: Optional[str] = None  # payload signature cache
         for t in CALC_TABS:
             if t["id"] == "design":
@@ -169,6 +171,12 @@ class ShellWindow(QMainWindow):
                 self._axial_panel = AxialProfilePanel()
                 self._axial_panel.refresh_requested.connect(self._on_axial_refresh)
                 self._calc_tab_stack.addWidget(self._axial_panel)
+            elif t["id"] == "optimizer":
+                self._optimizer_panel = AutoOptimizerPanel(
+                    get_base_payload=self._sidebar.get_payload,
+                    apply_overrides=self._on_optimizer_apply,
+                )
+                self._calc_tab_stack.addWidget(self._optimizer_panel)
             else:
                 self._calc_tab_stack.addWidget(Placeholder(
                     t["label"],
@@ -248,6 +256,16 @@ class ShellWindow(QMainWindow):
         """Received from InputSidebarPanel.calculate signal."""
         self._last_payload = payload
         self.run_calculation(payload)
+
+    def _on_optimizer_apply(self, overrides: dict) -> None:
+        """
+        Received from AutoOptimizerPanel when the user clicks Apply on a
+        swept candidate. Writes the changed fields into the sidebar
+        (partial update — set_payload only touches keys present in the
+        dict) then recalculates with the full merged sidebar state.
+        """
+        self._sidebar.set_payload(overrides)
+        self.run_calculation(self._sidebar.get_payload())
 
     def _on_page_changed(self, page_id: str) -> None:
         self._current_page = page_id

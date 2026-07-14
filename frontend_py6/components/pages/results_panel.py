@@ -788,6 +788,159 @@ class _ScoreGauge(QWidget):
 # 8. CostCard
 # ══════════════════════════════════════════════════════════════════════════
 
+# ══════════════════════════════════════════════════════════════════════════
+# Material & Surface Recommendations (MatRecs port)
+# ══════════════════════════════════════════════════════════════════════════
+
+class MaterialRecsCard(QFrame):
+    """
+    Full-width recommendations card — faithful port of MatRecs from
+    CalcPage.tsx. Reads result["recs"] directly, which is exactly what
+    engine.py's mat_recs() returns: {trough, flight, shaft, treatments,
+    notes} — each a list of strings. No transformation needed.
+    """
+
+    _SECTIONS = [
+        ("trough",     "□",  "Trough",     "#60a5fa"),
+        ("flight",     "🔩", "Flights",    "#f97316"),
+        ("shaft",      "⚙️", "Shaft",      PURPLE),
+        ("treatments", "🔥", "Treatments", "#fb923c"),
+    ]
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.setObjectName("card")
+        self.setStyleSheet(_CARD_QSS)
+
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 10)
+        outer.setSpacing(0)
+
+        hdr = QWidget()
+        hdr.setFixedHeight(34)
+        hdr.setStyleSheet(
+            f"background-color: {PANEL2}; "
+            f"border-top-left-radius: 8px; border-top-right-radius: 8px; "
+            f"border-bottom: 1px solid {BORDER};"
+        )
+        hdr_lay = QHBoxLayout(hdr)
+        hdr_lay.setContentsMargins(12, 0, 12, 0)
+        hdr_lay.setSpacing(7)
+        icon_lbl = QLabel("🛡️")
+        icon_lbl.setStyleSheet("font-size: 13px;")
+        title_lbl = QLabel("MATERIAL & SURFACE RECOMMENDATIONS")
+        title_lbl.setStyleSheet(
+            f"color: #fb923c; font-size: 9.5px; font-weight: 700; letter-spacing: 1px;"
+        )
+        hdr_lay.addWidget(icon_lbl)
+        hdr_lay.addWidget(title_lbl)
+        hdr_lay.addStretch()
+        outer.addWidget(hdr)
+
+        body = QWidget()
+        self._grid = QGridLayout(body)
+        self._grid.setContentsMargins(10, 8, 10, 4)
+        self._grid.setSpacing(8)
+        self._grid.setColumnStretch(0, 1)
+        self._grid.setColumnStretch(1, 1)
+        outer.addWidget(body)
+
+        self._section_widgets: dict[str, QFrame] = {}
+        self._section_layouts: dict[str, QVBoxLayout] = {}
+        self._section_colors: dict[str, str] = {}
+        for i, (key, icon, label, color) in enumerate(self._SECTIONS):
+            sec, sec_layout = self._build_section(icon, label, color)
+            self._grid.addWidget(sec, i // 2, i % 2)
+            self._section_widgets[key] = sec
+            self._section_layouts[key] = sec_layout
+            self._section_colors[key] = color
+
+        self._notes_box = QFrame()
+        self._notes_box.setStyleSheet(
+            f"background-color: rgba(74,158,255,.06); "
+            f"border: 1px solid rgba(74,158,255,.2); border-radius: 6px;"
+        )
+        notes_lay = QVBoxLayout(self._notes_box)
+        notes_lay.setContentsMargins(10, 7, 10, 7)
+        notes_lay.setSpacing(2)
+        notes_hdr = QLabel("⚠ DESIGN NOTES")
+        notes_hdr.setStyleSheet(
+            f"color: {PRIMARY}; font-size: 9px; font-weight: 700; letter-spacing: .6px;"
+        )
+        notes_lay.addWidget(notes_hdr)
+        self._notes_body = QVBoxLayout()
+        self._notes_body.setSpacing(2)
+        notes_lay.addLayout(self._notes_body)
+        self._notes_box.setVisible(False)
+        outer.addWidget(self._notes_box)
+
+    def _build_section(self, icon: str, label: str, color: str) -> tuple[QFrame, QVBoxLayout]:
+        frame = QFrame()
+        frame.setStyleSheet("background-color: rgba(0,0,0,.2); border-radius: 7px;")
+        lay = QVBoxLayout(frame)
+        lay.setContentsMargins(11, 9, 11, 9)
+        lay.setSpacing(3)
+
+        title = QLabel(f"{icon} {label}")
+        title.setStyleSheet(f"color: {color}; font-size: 10px; font-weight: 700;")
+        lay.addWidget(title)
+
+        items_layout = QVBoxLayout()
+        items_layout.setSpacing(3)
+        lay.addLayout(items_layout)
+        return frame, items_layout
+
+    def set_data(self, result: dict) -> None:
+        if not result or result.get("error"):
+            self.setVisible(False)
+            return
+        recs = result.get("recs", {}) or {}
+
+        any_content = False
+        for key, _icon, _label, _color in self._SECTIONS:
+            frame = self._section_widgets[key]
+            items_layout = self._section_layouts[key]
+            color = self._section_colors[key]
+            while items_layout.count():
+                item = items_layout.takeAt(0)
+                if item is None:
+                    continue
+                w = item.widget()
+                if w is not None:
+                    w.deleteLater()
+
+            items = recs.get(key) or []
+            frame.setVisible(bool(items))
+            if items:
+                any_content = True
+            for text in items:
+                lbl = QLabel(f"•  {text}")
+                lbl.setStyleSheet(
+                    f"color: #b0c8e0; font-size: 9.5px; "
+                    f"border-left: 2px solid {color}55; padding-left: 7px;"
+                )
+                lbl.setWordWrap(True)
+                items_layout.addWidget(lbl)
+
+        # Notes
+        while self._notes_body.count():
+            item = self._notes_body.takeAt(0)
+            if item is None:
+                continue
+            w = item.widget()
+            if w is not None:
+                w.deleteLater()
+        notes = recs.get("notes") or []
+        self._notes_box.setVisible(bool(notes))
+        for text in notes:
+            lbl = QLabel(f"•  {text}")
+            lbl.setStyleSheet(f"color: #93c5fd; font-size: 9.5px;")
+            lbl.setWordWrap(True)
+            self._notes_body.addWidget(lbl)
+
+        self.setVisible(any_content or bool(notes))
+
+
 class CostCard(_Card):
 
     def __init__(self, parent: Optional[QWidget] = None):
@@ -897,6 +1050,10 @@ class ResultsPanel(QWidget):
         self._grid.setColumnStretch(0, 1)
         self._grid.setColumnStretch(1, 1)
 
+        # ── Material & Surface Recommendations (full width) ───────────────
+        self._recs = MaterialRecsCard()
+        self._body_layout.addWidget(self._recs)
+
         # ── 2D Visualizer (full width, below the card grid) ──────────────
         self._viz = ScrewViz2D(title="Screw Conveyor")
         self._viz.setFixedHeight(360)
@@ -923,4 +1080,5 @@ class ResultsPanel(QWidget):
         self._gbx.set_data(result)
         self._eff.set_data(result)
         self._cost.set_data(result)
+        self._recs.set_data(result)
         self._viz.set_data(result)

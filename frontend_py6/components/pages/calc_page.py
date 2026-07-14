@@ -48,7 +48,7 @@ from theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT,
 )
-from api_client import fetch_materials
+from api_client import fetch_materials, fetch_bearings, fetch_gearboxes
 
 # ── Default payload — mirrors theme.DEFAULT_PAYLOAD ──────────────────────
 _DEFAULTS: dict[str, Any] = {
@@ -562,9 +562,31 @@ class InputSidebarPanel(QWidget):
             if idx >= 0:
                 self._mat.setCurrentIndex(idx)
 
-        # Bearing and gearbox combos would be populated from their own
-        # endpoints once those routes are confirmed in routes.py
-        # For now they keep their hardcoded defaults.
+        # Bearing and gearbox combos — routes confirmed in routes.py
+        # (GET /api/v1/bearings, GET /api/v1/gearboxes) since the
+        # Auto-Optimiser's Phase 3 sweep already relies on these same
+        # endpoints via fetch_bearings()/fetch_gearboxes().
+        brg_result = fetch_bearings()
+        if not brg_result.get("error"):
+            items = brg_result.get("items", [])
+            current = self._brg.currentText()
+            self._brg.clear()
+            for b in items:
+                self._brg.addItem(b.get("name", ""), b.get("name", ""))
+            idx = self._brg.findText(current)
+            if idx >= 0:
+                self._brg.setCurrentIndex(idx)
+
+        gbx_result = fetch_gearboxes()
+        if not gbx_result.get("error"):
+            items = gbx_result.get("items", [])
+            current = self._gbx.currentText()
+            self._gbx.clear()
+            for g in items:
+                self._gbx.addItem(g.get("model", ""), g.get("model", ""))
+            idx = self._gbx.findText(current)
+            if idx >= 0:
+                self._gbx.setCurrentIndex(idx)
 
     def set_payload(self, payload: dict) -> None:
         """Programmatically set all fields from a saved payload dict."""
