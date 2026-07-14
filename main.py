@@ -19,6 +19,14 @@ import math
 from typing import Optional
 from pydantic import BaseModel, Field
 
+# Compatibility shim for Uvicorn reload mode.
+# When Uvicorn imports the project-level module named "main",
+# expose the FastAPI backend app here so `main:app` resolves correctly.
+try:
+    from backend.main import app as app  # type: ignore
+except Exception:  # pragma: no cover - fallback if backend import fails
+    app = None
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. MIXER / BLENDER

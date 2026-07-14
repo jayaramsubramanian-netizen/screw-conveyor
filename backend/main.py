@@ -14,6 +14,9 @@ project_root = Path(__file__).resolve().parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# Support both:
+#   python -m uvicorn main:app --reload --port 8000   (run from backend/)
+#   python -m uvicorn backend.main:app --reload --port 8000 (run from repo root)
 if __package__ in {None, ""}:
     from backend.api.routes import router
     from backend.db.database import engine, Base, initialize_db
