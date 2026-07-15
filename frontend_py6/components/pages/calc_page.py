@@ -316,51 +316,79 @@ class InputSidebarPanel(QWidget):
         body_layout.setContentsMargins(0, 4, 0, 8)
         body_layout.setSpacing(0)
 
-        # ── A · Geometry ──────────────────────────────────────────────────
-        sec_a = CollapsibleSection("A · Geometry", expanded=True)
+        # ══════════════════════════════════════════════════════════════════
+        # Section order below matches CalcPage.tsx exactly (Material & Duty
+        # → Trough Geometry → Flight Pitch → Shaft Configuration → Drive &
+        # Bearings), which was jumbled in the original PySide6 port. Widget
+        # variable names are unchanged from before this reorder, so signal
+        # wiring, set_payload(), and get_payload() below needed no changes
+        # — only which section each field's _row() call lives in, and the
+        # order sections are added to body_layout.
+        #
+        # Not ported: TSX's `hgr_brg` (Hanger Bearing) dropdown. It's
+        # explicitly a display-only field in the original — comment there
+        # reads "Used for hanger load distribution display only" — and is
+        # never sent to calc_engine() (EngineInput has a single `brg`
+        # field, used for both end and hanger bearings). Omitting a
+        # decorative field that doesn't affect the calculation rather
+        # than faithfully porting non-functional UI.
+        # ══════════════════════════════════════════════════════════════════
 
+        # ── A · Material & Duty ────────────────────────────────────────────
+        sec_a = CollapsibleSection("A · Material & Duty", expanded=True)
+
+        self._cont_a = QCheckBox("Continuous aFact (exponential)")
         self._type = _combo(
             [("Screw (U-trough)", "screw"), ("Tubular (pipe)", "pipe")],
             _DEFAULTS["type"],
         )
-        self._D    = _dspin(0.050, 1.200, 0.025, _DEFAULTS["D"])
-        self._L    = _dspin(0.5,  100.0,  0.5,   _DEFAULTS["L"], decimals=1)
-        self._N    = _dspin(5.0,  300.0,  1.0,   _DEFAULTS["N"], decimals=1)
-        self._P    = _dspin(0.050, 2.000, 0.025, _DEFAULTS["P"])
-        self._ang  = _dspin(-20.0, 45.0,  1.0,   _DEFAULTS["ang"], decimals=1)
-
-        sec_a.add_row(_row("Type",      self._type))
-        sec_a.add_row(_row("Diameter",  self._D,   "m"))
-        sec_a.add_row(_row("Length",    self._L,   "m"))
-        sec_a.add_row(_row("Speed",     self._N,   "RPM"))
-        sec_a.add_row(_row("Pitch",     self._P,   "m"))
-        sec_a.add_row(_row("Angle",     self._ang, "°"))
-        body_layout.addWidget(sec_a)
-
-        # ── B · Capacity ──────────────────────────────────────────────────
-        sec_b = CollapsibleSection("B · Capacity", expanded=True)
-
         self._mat   = QComboBox()
         self._mat.setFixedHeight(26)
         self._mat.addItem(_DEFAULTS["mat"])    # populated properly in load_combos()
         self._cap   = _dspin(0.01, 5000.0, 1.0,  _DEFAULTS["cap"], decimals=1)
+        self._L     = _dspin(0.5,  100.0,  0.5,  _DEFAULTS["L"], decimals=1)
+        self._ang   = _dspin(-20.0, 45.0,  1.0,  _DEFAULTS["ang"], decimals=1)
         self._surge = _dspin(1.00,    2.0, 0.05, _DEFAULTS["surge"])
-        self._duty  = _spin(1, 24, _DEFAULTS["duty"])
 
-        sec_b.add_row(_row("Material",  self._mat))
-        sec_b.add_row(_row("Capacity",  self._cap,   "t/h"))
-        sec_b.add_row(_row("Surge",     self._surge))
-        sec_b.add_row(_row("Duty",      self._duty,  "h/day"))
+        sec_a.add_widget(
+            self._padded(self._cont_a, left=10, top=4, bottom=2)
+        )
+        sec_a.add_row(_row("Type",      self._type))
+        sec_a.add_row(_row("Material",  self._mat))
+        sec_a.add_row(_row("Capacity",  self._cap,   "t/h"))
+        sec_a.add_row(_row("Length",    self._L,     "m"))
+        sec_a.add_row(_row("Angle",     self._ang,   "°"))
+        sec_a.add_row(_row("Surge",     self._surge))
+        body_layout.addWidget(sec_a)
+
+        # ── B · Trough Geometry ────────────────────────────────────────────
+        sec_b = CollapsibleSection("B · Trough Geometry", expanded=True)
+
+        self._D  = _dspin(0.050, 1.200, 0.025, _DEFAULTS["D"])
+        self._N  = _dspin(5.0,  300.0,  1.0,   _DEFAULTS["N"], decimals=1)
+        self._ft = _dspin(0.002, 0.050, 0.001, _DEFAULTS["ft"])
+        self._wa = _dspin(0.001, 0.020, 0.001, _DEFAULTS["wa"])
+
+        sec_b.add_row(_row("Diameter",    self._D,  "m"))
+        sec_b.add_row(_row("Speed",       self._N,  "RPM"))
+        sec_b.add_row(_row("Flight t",    self._ft, "m"))
+        sec_b.add_row(_row("Wear allow",  self._wa, "m"))
         body_layout.addWidget(sec_b)
 
-        # ── C · Multi-pitch (collapsed) ───────────────────────────────────
-        sec_c = CollapsibleSection("C · Multi-pitch", expanded=False)
+        # ── C · Flight Pitch ───────────────────────────────────────────────
+        sec_c = CollapsibleSection("C · Flight Pitch", expanded=True)
 
+        self._P       = _dspin(0.050, 2.000, 0.025, _DEFAULTS["P"])
         self._use_mp  = QCheckBox("Enable multi-pitch geometry")
         self._P_in    = _dspin(0.050, 2.000, 0.025, _DEFAULTS["P_in"])
         self._P_out   = _dspin(0.050, 2.000, 0.025, _DEFAULTS["P_out"])
         self._pct_in  = _dspin(5.0, 30.0, 1.0, _DEFAULTS["pct_in"],  decimals=1)
         self._pct_out = _dspin(5.0, 30.0, 1.0, _DEFAULTS["pct_out"], decimals=1)
+
+        sec_c.add_row(_row("Body pitch",  self._P, "m"))
+        sec_c.add_widget(
+            self._padded(self._use_mp, left=10, top=4, bottom=4)
+        )
 
         self._mp_body = QWidget()
         mb = QVBoxLayout(self._mp_body)
@@ -371,29 +399,16 @@ class InputSidebarPanel(QWidget):
         mb.addWidget(_row("Inlet zone",   self._pct_in, "%"))
         mb.addWidget(_row("Outlet zone",  self._pct_out, "%"))
         self._mp_body.setVisible(False)
-
-        sec_c.add_widget(
-            self._padded(self._use_mp, left=10, top=4, bottom=4)
-        )
         sec_c.add_widget(self._mp_body)
         body_layout.addWidget(sec_c)
 
-        # ── D · Shaft ─────────────────────────────────────────────────────
-        sec_d = CollapsibleSection("D · Shaft", expanded=True)
+        # ── D · Shaft Configuration ────────────────────────────────────────
+        sec_d = CollapsibleSection("D · Shaft Configuration", expanded=True)
 
         self._shaft_mode = _combo(
             [("Auto (VECTRIX™)", "auto"), ("Manual override", "manual")],
             _DEFAULTS["shaft_mode"],
         )
-        self._sallow = _dspin(20.0, 160.0, 5.0, _DEFAULTS["sallow"], decimals=1)
-        self._sup    = _combo(
-            [("Pin-fix (default)", "pinfix"),
-             ("Both pinned", "pinned"),
-             ("Both fixed", "fixed")],
-            _DEFAULTS["support_cond"],
-        )
-
-        # Manual-only fields
         self._shtype = _combo(
             [("Solid bar", "bar"), ("Hollow pipe", "pipe")],
             _DEFAULTS["shtype"],
@@ -410,47 +425,46 @@ class InputSidebarPanel(QWidget):
         mdb.addWidget(_row("Wall",       self._pwall, "mm"))
         self._manual_body.setVisible(False)
 
+        self._sallow = _dspin(20.0, 160.0, 5.0, _DEFAULTS["sallow"], decimals=1)
+        self._sup    = _combo(
+            [("Pin-fix (default)", "pinfix"),
+             ("Both pinned", "pinned"),
+             ("Both fixed", "fixed")],
+            _DEFAULTS["support_cond"],
+        )
+
         sec_d.add_row(_row("Mode",       self._shaft_mode))
+        sec_d.add_widget(self._manual_body)
         sec_d.add_row(_row("τ allow",    self._sallow, "MPa"))
         sec_d.add_row(_row("Supports",   self._sup))
-        sec_d.add_widget(self._manual_body)
         body_layout.addWidget(sec_d)
 
-        # ── E · Flight & Wear ─────────────────────────────────────────────
-        sec_e = CollapsibleSection("E · Flight & Wear", expanded=True)
+        # ── E · Drive & Bearings ───────────────────────────────────────────
+        sec_e = CollapsibleSection("E · Drive & Bearings", expanded=True)
 
-        self._ft     = _dspin(0.002, 0.050, 0.001, _DEFAULTS["ft"])
-        self._wa     = _dspin(0.001, 0.020, 0.001, _DEFAULTS["wa"])
-        self._temp_c = _dspin(-20.0, 800.0, 5.0,   _DEFAULTS["temp_c"], decimals=1)
-
-        sec_e.add_row(_row("Flight t",   self._ft,     "m"))
-        sec_e.add_row(_row("Wear allow", self._wa,     "m"))
-        sec_e.add_row(_row("Temp",       self._temp_c, "°C"))
-        body_layout.addWidget(sec_e)
-
-        # ── F · Drive (collapsed) ─────────────────────────────────────────
-        sec_f = CollapsibleSection("F · Drive", expanded=False)
-
-        self._brg     = QComboBox()
+        self._brg = QComboBox()
         self._brg.setFixedHeight(26)
         self._brg.addItem(_DEFAULTS["brg"])
-        self._gbx     = QComboBox()
+        self._gbx = QComboBox()
         self._gbx.setFixedHeight(26)
         self._gbx.addItem(_DEFAULTS["gbx"])
-        self._bload   = _dspin(0.0, 500.0, 0.5, _DEFAULTS["bload"], decimals=2)
+        self._duty    = _spin(1, 24, _DEFAULTS["duty"])
         self._hangers = _spin(0, 20, _DEFAULTS["hangers"])
-
-        self._bload.setSpecialValueText("Auto")
         self._hangers.setSpecialValueText("Auto")
+        self._bload = _dspin(0.0, 500.0, 0.5, _DEFAULTS["bload"], decimals=2)
+        self._bload.setSpecialValueText("Auto")
+        self._temp_c = _dspin(-20.0, 800.0, 5.0, _DEFAULTS["temp_c"], decimals=1)
 
-        sec_f.add_row(_row("Bearing",   self._brg))
-        sec_f.add_row(_row("Gearbox",   self._gbx))
-        sec_f.add_row(_row("Brg load",  self._bload,   "kN"))
-        sec_f.add_row(_row("Hangers",   self._hangers))
-        body_layout.addWidget(sec_f)
+        sec_e.add_row(_row("Bearing",   self._brg))
+        sec_e.add_row(_row("Gearbox",   self._gbx))
+        sec_e.add_row(_row("Duty",      self._duty,  "h/day"))
+        sec_e.add_row(_row("Hangers",   self._hangers))
+        sec_e.add_row(_row("Brg load",  self._bload, "kN"))
+        sec_e.add_row(_row("Temp",      self._temp_c, "°C"))
+        body_layout.addWidget(sec_e)
 
-        # ── G · Standards (collapsed) ─────────────────────────────────────
-        sec_g = CollapsibleSection("G · Standards", expanded=False)
+        # ── F · Advanced (VECTRIX™ extras beyond the original TSX panel) ──
+        sec_f = CollapsibleSection("F · Advanced", expanded=False)
 
         self._lam = _dspin(0.80, 2.00, 0.01, _DEFAULTS["lam_factor"])
         self._std_combo = _combo(
@@ -459,18 +473,14 @@ class InputSidebarPanel(QWidget):
              ("KWS Eng.",    "1.03")],
             "1.00",
         )
-        self._cont_a  = QCheckBox("Continuous aFact (exponential)")
         self._fill_cp = QCheckBox("Fill-coupling correction")
 
-        sec_g.add_row(_row("λ factor",  self._lam))
-        sec_g.add_row(_row("Standard",  self._std_combo))
-        sec_g.add_widget(
-            self._padded(self._cont_a, left=10, top=3)
-        )
-        sec_g.add_widget(
+        sec_f.add_row(_row("λ factor",  self._lam))
+        sec_f.add_row(_row("Standard",  self._std_combo))
+        sec_f.add_widget(
             self._padded(self._fill_cp, left=10, top=3, bottom=4)
         )
-        body_layout.addWidget(sec_g)
+        body_layout.addWidget(sec_f)
 
         body_layout.addStretch()
         scroll.setWidget(body)
