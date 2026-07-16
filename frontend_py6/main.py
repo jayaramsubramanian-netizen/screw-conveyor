@@ -168,7 +168,9 @@ class ShellWindow(QMainWindow):
         self._axial_loaded_for: Optional[str] = None  # payload signature cache
         for t in CALC_TABS:
             if t["id"] == "design":
-                self._results_panel = ResultsPanel()
+                self._results_panel = ResultsPanel(
+                    get_base_payload=self._sidebar.get_payload,
+                )
                 self._calc_tab_stack.addWidget(self._results_panel)
             elif t["id"] == "axial":
                 self._axial_panel = AxialProfilePanel()

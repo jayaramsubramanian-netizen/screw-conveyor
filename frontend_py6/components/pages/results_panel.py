@@ -21,7 +21,7 @@ ResultsPanel    QScrollArea containing all cards in a VBox
 
 from __future__ import annotations
 
-from typing import Optional, Any
+from typing import Optional, Any, Callable
 import math
 
 from PySide6.QtWidgets import (
@@ -38,6 +38,7 @@ from theme import (
 from components.screw_viz import ScrewViz2D
 from components.model_number import generate_model_number
 from components.pages.standards_widgets import StdTabsWidget, StdCompTable
+from components.pages.calc_basis_panel import CalcBasisPanel
 
 
 # ── formatting helpers ────────────────────────────────────────────────────
@@ -1062,7 +1063,11 @@ class ResultsPanel(QWidget):
                  dict; no new network call.
     """
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(
+        self,
+        get_base_payload: Callable[[], dict],
+        parent: Optional[QWidget] = None,
+    ):
         super().__init__(parent)
         self.setStyleSheet(f"background-color: {BG};")
 
@@ -1148,6 +1153,10 @@ class ResultsPanel(QWidget):
         self._recs = MaterialRecsCard()
         self._body_layout.addWidget(self._recs)
 
+        # ── Calculation Basis + Parametric Sweep (full width) ────────────
+        self._calc_basis = CalcBasisPanel(get_base_payload)
+        self._body_layout.addWidget(self._calc_basis)
+
         # ── 2D Visualizer (full width, below the card grid) ──────────────
         self._viz = ScrewViz2D(title="Screw Conveyor")
         self._viz.setFixedHeight(360)
@@ -1193,6 +1202,7 @@ class ResultsPanel(QWidget):
             return
 
         self._model_badge.set_data(effective)
+        self._flow_regime.set_data(effective)
         self._warns.set_data(effective.get("warns", {}))
         self._cap.set_data(effective)
         self._pwr.set_data(effective)
