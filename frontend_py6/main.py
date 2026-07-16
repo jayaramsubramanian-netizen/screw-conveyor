@@ -41,7 +41,10 @@ from theme import (
     BG, PANEL, BORDER, PRIMARY,
     CALC_TABS, DEFAULT_PAYLOAD,
 )
-from api_client import fetch_design, fetch_process, fetch_axial_profile, health_check
+from api_client import (
+    fetch_design, fetch_process, fetch_axial_profile,
+    fetch_calculate_multi, health_check,
+)
 from components import (
     AppTitleBar, TopNav, PageMenuBar,
     ColHeader, Placeholder, fail_warn_badges,
@@ -367,7 +370,18 @@ class ShellWindow(QMainWindow):
         # Results tab cards — only meaningful for the conveyor calculator,
         # not process modules (those get their own results view later)
         if self._current_page == "calc" and self._results_panel is not None:
-            self._results_panel.set_data(results)
+            # Standards Comparison (CEMA/DIN/Custom) — eager fetch on every
+            # calculate, matching CalcPage.tsx's useQuery(enabled:!!R,
+            # staleTime:0) behavior. One extra HTTP call, but the backend
+            # computes all three standards in a single request, and the
+            # 400ms sidebar debounce already limits how often this fires.
+            multi_results = fetch_calculate_multi(payload)
+            if multi_results.get("error"):
+                # Non-fatal — Standards tab just won't have fresh data
+                # this round; ResultsPanel keeps showing its last cache.
+                self._results_panel.set_data(results)
+            else:
+                self._results_panel.set_data(results, multi_results)
 
         # Design Health (col4) — always live for the conveyor calculator,
         # regardless of which calc tab is active

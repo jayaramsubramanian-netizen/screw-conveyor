@@ -37,6 +37,7 @@ from theme import (
 )
 from components.screw_viz import ScrewViz2D
 from components.model_number import generate_model_number
+from components.pages.standards_widgets import StdTabsWidget, StdCompTable
 
 
 # ── formatting helpers ────────────────────────────────────────────────────
@@ -941,6 +942,72 @@ class MaterialRecsCard(QFrame):
         self.setVisible(any_content or bool(notes))
 
 
+# ══════════════════════════════════════════════════════════════════════════
+# 0b. FlowRegimeBar
+# ══════════════════════════════════════════════════════════════════════════
+
+class FlowRegimeBar(QFrame):
+    """
+    Small indicator strip — faithful port of the inline flow-regime box
+    in CalcPage.tsx. Shows result["regime"]["name"] (Normal / Flooding
+    / Choking / Starved, set by calc_engine()'s regime_name logic) as
+    a coloured dot + label, plus a CEMA material class badge on the right.
+
+    Note: the description text "Normal conveying regime" is static in
+    the original regardless of the actual regime value — reproduced
+    as-is for fidelity rather than silently "fixing" it, since this
+    task is about matching the working app, not second-guessing it.
+    """
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.setStyleSheet(
+            f"background-color: rgba(16,30,48,.5); border: 1px solid {BORDER}; "
+            f"border-radius: 8px;"
+        )
+        lay = QHBoxLayout(self)
+        lay.setContentsMargins(14, 8, 14, 8)
+        lay.setSpacing(12)
+
+        self._dot = QLabel()
+        self._dot.setFixedSize(14, 14)
+        lay.addWidget(self._dot)
+
+        self._name_lbl = QLabel("")
+        self._name_lbl.setStyleSheet("font-size: 11px; font-weight: 700;")
+        lay.addWidget(self._name_lbl)
+
+        desc_lbl = QLabel("Normal conveying regime")
+        desc_lbl.setStyleSheet(f"color: {MUTED}; font-size: 10px;")
+        lay.addWidget(desc_lbl)
+
+        lay.addStretch()
+
+        self._class_badge = QLabel("")
+        self._class_badge.setStyleSheet(
+            f"background-color: #1c3048; color: {MUTED}; "
+            f"padding: 2px 8px; border-radius: 3px; font-size: 9px;"
+        )
+        lay.addWidget(self._class_badge)
+
+    def set_data(self, result: dict) -> None:
+        if not result or result.get("error"):
+            self.setVisible(False)
+            return
+        self.setVisible(True)
+
+        regime_name = (result.get("regime", {}) or {}).get("name", "Normal Flow")
+        is_normal = "Normal" in regime_name
+        color = SUCCESS if is_normal else WARNING
+
+        self._dot.setStyleSheet(f"background-color: {color}; border-radius: 3px;")
+        self._name_lbl.setText(regime_name)
+        self._name_lbl.setStyleSheet(f"color: {color}; font-size: 11px; font-weight: 700;")
+
+        mat_cls = (result.get("mat", {}) or {}).get("cls", "—")
+        self._class_badge.setText(f"CEMA Class {mat_cls}")
+
+
 class CostCard(_Card):
 
     def __init__(self, parent: Optional[QWidget] = None):
@@ -982,13 +1049,25 @@ class ResultsPanel(QWidget):
     """
     col3 Results tab content.
 
-    set_data(result: dict)  — called by ShellWindow.run_calculation()
-                              distributes to all cards in one pass.
+    set_data(result, multi=None) — called by ShellWindow.run_calculation().
+        result : dict — single-standard result (from fetch_design(),
+                 whatever lam_factor the sidebar currently holds).
+                 Always used as the fallback / pre-multi-fetch display.
+        multi  : Optional[dict] — {"CEMA":..., "DIN":..., "Custom":...}
+                 from fetch_calculate_multi(). When present, the
+                 selected standard tab (default "CEMA") drives which
+                 of the three feeds every card — matching the React
+                 version's `activeR = multiR[activeStd]` pattern.
+                 Switching tabs re-renders instantly from the cached
+                 dict; no new network call.
     """
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setStyleSheet(f"background-color: {BG};")
+
+        self._last_result: dict = {}
+        self._multi_result: dict = {}
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -1009,9 +1088,19 @@ class ResultsPanel(QWidget):
         self._body_layout.setContentsMargins(10, 8, 10, 10)
         self._body_layout.setSpacing(8)
 
+        # Standards selector (top, full width) — drives which result
+        # feeds every card below via std_changed
+        self._std_tabs = StdTabsWidget()
+        self._std_tabs.std_changed.connect(self._on_std_changed)
+        self._body_layout.addWidget(self._std_tabs)
+
         # Model number (top, full width)
         self._model_badge = ModelNumberBadge()
         self._body_layout.addWidget(self._model_badge)
+
+        # Flow regime indicator (before warnings, matching CalcPage.tsx order)
+        self._flow_regime = FlowRegimeBar()
+        self._body_layout.addWidget(self._flow_regime)
 
         # Warnings banner (top, full width)
         self._warns = WarnsBanner()
@@ -1050,6 +1139,11 @@ class ResultsPanel(QWidget):
         self._grid.setColumnStretch(0, 1)
         self._grid.setColumnStretch(1, 1)
 
+        # ── Standards Comparison table (full width, after Efficiency,
+        #    matches CalcPage.tsx order — placed here, before MatRecs) ──
+        self._std_comp = StdCompTable()
+        self._body_layout.addWidget(self._std_comp)
+
         # ── Material & Surface Recommendations (full width) ───────────────
         self._recs = MaterialRecsCard()
         self._body_layout.addWidget(self._recs)
@@ -1063,22 +1157,49 @@ class ResultsPanel(QWidget):
         scroll.setWidget(body)
         outer.addWidget(scroll)
 
-    def set_data(self, result: dict) -> None:
+    def set_data(self, result: dict, multi: Optional[dict] = None) -> None:
         """
-        Distribute engine result dict to all cards.
-        Called from ShellWindow.run_calculation() after fetch_design() succeeds.
+        Distribute results to all cards.
+        Called from ShellWindow.run_calculation() after fetch_design()
+        (and, when available, fetch_calculate_multi()) succeed.
         """
         if not result or result.get("error"):
             return
 
-        self._model_badge.set_data(result)
-        self._warns.set_data(result.get("warns", {}))
-        self._cap.set_data(result)
-        self._pwr.set_data(result)
-        self._sh.set_data(result)
-        self._brg.set_data(result)
-        self._gbx.set_data(result)
-        self._eff.set_data(result)
-        self._cost.set_data(result)
-        self._recs.set_data(result)
-        self._viz.set_data(result)
+        self._last_result = result
+        if multi is not None:
+            self._multi_result = multi
+            self._std_tabs.set_multi(multi)
+        self._std_comp.set_data(self._multi_result, self._std_tabs.active_standard())
+
+        self._render_active()
+
+    def _on_std_changed(self, std: str) -> None:
+        """User clicked a different standard tab — no refetch, just
+        re-render every card from the already-cached multi-result."""
+        self._std_comp.set_data(self._multi_result, std)
+        self._render_active()
+
+    def _render_active(self) -> None:
+        """
+        Picks whichever result should currently drive the cards:
+        the active standard's entry from the cached multi-result if
+        available, otherwise the plain single-standard result (e.g.
+        before the first /calculate-multi response has arrived).
+        """
+        active_std = self._std_tabs.active_standard()
+        effective = self._multi_result.get(active_std) or self._last_result
+        if not effective or effective.get("error"):
+            return
+
+        self._model_badge.set_data(effective)
+        self._warns.set_data(effective.get("warns", {}))
+        self._cap.set_data(effective)
+        self._pwr.set_data(effective)
+        self._sh.set_data(effective)
+        self._brg.set_data(effective)
+        self._gbx.set_data(effective)
+        self._eff.set_data(effective)
+        self._cost.set_data(effective)
+        self._recs.set_data(effective)
+        self._viz.set_data(effective)
