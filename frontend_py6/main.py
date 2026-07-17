@@ -390,6 +390,13 @@ class ShellWindow(QMainWindow):
         if self._current_page == "calc":
             self._status_panel.set_data(results, payload)
 
+        # Shaft Deflection Profile (Axial Profiles tab) needs the main
+        # design result (deflection, defl_limit, hgr.span, nc, nc_ratio,
+        # tor.pipe/eff_od_mm/eff_id_mm) — cheap to feed every calculate
+        # regardless of whether that tab is currently visible.
+        if self._current_page == "calc" and self._axial_panel is not None:
+            self._axial_panel.set_main_result(results)
+
         if self._current_tab == "design" and self._current_page == "calc":
             self._update_col3_header("design")
 
