@@ -36,7 +36,7 @@ from PySide6.QtGui import (
     QLinearGradient, QRadialGradient,
 )
 
-from theme import (
+from core.theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT, PURPLE, TEAL,
 )

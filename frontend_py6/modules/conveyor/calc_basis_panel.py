@@ -34,11 +34,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, QObject, Signal
 import pyqtgraph as pg
 
-from theme import (
+from core.theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT, TEAL,
 )
-from api_client import fetch_design
+from core.api_client import fetch_design
 
 pg.setConfigOptions(antialias=True, background=PANEL2, foreground=TEXT3)
 

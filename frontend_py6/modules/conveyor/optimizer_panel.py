@@ -42,11 +42,11 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QThread, QObject, Signal
 
-from theme import (
+from core.theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT, TEAL, PURPLE,
 )
-from api_client import fetch_design, fetch_gearboxes, fetch_bearings
+from core.api_client import fetch_design, fetch_gearboxes, fetch_bearings
 
 
 # ── formatting helpers ────────────────────────────────────────────────────

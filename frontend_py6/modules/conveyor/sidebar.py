@@ -44,11 +44,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont
 
-from theme import (
+from core.theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT,
 )
-from api_client import fetch_materials, fetch_bearings, fetch_gearboxes
+from core.api_client import fetch_materials, fetch_bearings, fetch_gearboxes
 
 # ── Default payload — mirrors theme.DEFAULT_PAYLOAD ──────────────────────
 _DEFAULTS: dict[str, Any] = {

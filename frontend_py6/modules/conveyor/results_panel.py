@@ -31,14 +31,14 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter, QColor, QFont, QPen, QBrush
 
-from theme import (
+from core.theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT, PURPLE, TEAL,
 )
-from components.screw_viz import ScrewViz2D
-from components.model_number import generate_model_number
-from components.pages.standards_widgets import StdTabsWidget, StdCompTable
-from components.pages.calc_basis_panel import CalcBasisPanel
+from modules.conveyor.screw_viz import ScrewViz2D
+from modules.conveyor.model_number import generate_model_number
+from modules.conveyor.standards_widgets import StdTabsWidget, StdCompTable
+from modules.conveyor.calc_basis_panel import CalcBasisPanel
 
 
 # ── formatting helpers ────────────────────────────────────────────────────

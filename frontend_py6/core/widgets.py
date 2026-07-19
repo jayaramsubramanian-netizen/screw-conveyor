@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QRect, QRectF
 from PySide6.QtGui import QPainter, QColor, QFont, QPen
 
-from theme import (
+from core.theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER,
     TAB_PILL_HEIGHT, TAB_PILL_RADIUS,

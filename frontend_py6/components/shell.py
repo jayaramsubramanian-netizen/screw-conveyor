@@ -22,14 +22,14 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QAction, QKeySequence
 
-from theme import (
+from core.theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT, BRAND_RED,
     CALC_TABS, PAGE_META, PAGE_GROUPS,
     TAB_PILL_HEIGHT, TAB_PILL_RADIUS,
     MODULE_PILL_HEIGHT, MODULE_PILL_RADIUS,
 )
-from components.widgets import (
+from core.widgets import (
     ColHeader, NavTabButton, ModulePill, KpiChip, fail_warn_badges,
 )
 

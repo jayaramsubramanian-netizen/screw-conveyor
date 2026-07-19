@@ -38,7 +38,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from theme import (
+from core.theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT,
 )

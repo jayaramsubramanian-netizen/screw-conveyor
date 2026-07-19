@@ -2,9 +2,19 @@
 components/pages/__init__.py — one QWidget per application page.
 
 CalcPage is now InputSidebarPanel in components/pages/calc_page.py.
-All other pages remain honest Placeholders until their session arrives.
+Mixer has migrated out to modules/process/mixer/ as MixerWorkspace, the
+first implementation of the modules/base.py contract. The remaining five
+process modules follow it there, not here.
+Everything left in this file is an honest Placeholder until its session
+arrives; this package dissolves in step 4.
 """
-from components.widgets import Placeholder
+from core.widgets import Placeholder
+
+__all__ = [
+    "FamilyPage", "FeederPage", "DryerPage", "CoolerPage",
+    "SeparatorPage", "ReactorPage", "CompactorPage", "DatabasePage",
+    "ManualPage",
+]
 
 
 # ── Non-calc pages ────────────────────────────────────────────────────────
@@ -23,15 +33,6 @@ class FeederPage(Placeholder):
         super().__init__(
             "🎚️  Feeder / Doser",
             "Live-bottom feeder + hopper extraction",
-            parent,
-        )
-
-
-class MixerPage(Placeholder):
-    def __init__(self, parent=None):
-        super().__init__(
-            "🌀  Screw Mixer",
-            "POST /api/calculate/process  module=mixer",
             parent,
         )
 

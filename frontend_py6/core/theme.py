@@ -22,6 +22,10 @@ NONE_C    = "#5a7a9a"
 
 # ── Screw conveyor specific ───────────────────────────────────────────────
 ACCENT    = "#e8a000"       # amber — matches HTML app C.accent
+PROCESS_ACCENT = "#c8192e"  # Jayveecons crimson — matches ProcessPage.tsx C.accent.
+                            # The six process modules accent crimson, not amber;
+                            # the conveyor calc page keeps ACCENT. Added here rather
+                            # than kept as a local copy per this module's docstring.
 PURPLE    = "#a78bfa"       # process module results
 TEAL      = "#2dd4bf"       # shaft B / twin-screw colour
 BRAND_RED = "#b5362f"       # VECTRIX platform icon background

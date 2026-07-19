@@ -37,27 +37,27 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal, QObject
 from PySide6.QtGui import QFont
 
-from theme import (
+from core.theme import (
     BG, PANEL, BORDER, PRIMARY,
     CALC_TABS, DEFAULT_PAYLOAD,
 )
-from api_client import (
+from core.api_client import (
     fetch_design, fetch_process, fetch_axial_profile,
     fetch_calculate_multi, health_check,
 )
+from core.widgets import ColHeader, Placeholder, fail_warn_badges
 from components import (
     AppTitleBar, TopNav, PageMenuBar,
-    ColHeader, Placeholder, fail_warn_badges,
     FamilyPage, FeederPage,
     MixerPage, DryerPage, CoolerPage,
     SeparatorPage, ReactorPage, CompactorPage,
     DatabasePage, ManualPage,
 )
-from components.pages.calc_page import InputSidebarPanel
-from components.pages.results_panel import ResultsPanel
-from components.pages.axial_panel import AxialProfilePanel
-from components.pages.status_panel import StatusPanel
-from components.pages.optimizer_panel import AutoOptimizerPanel
+from modules.conveyor.sidebar import InputSidebarPanel
+from modules.conveyor.results_panel import ResultsPanel
+from modules.conveyor.axial_panel import AxialProfilePanel
+from modules.conveyor.status_panel import StatusPanel
+from modules.conveyor.optimizer_panel import AutoOptimizerPanel
 
 # ── Page registry — non-calc pages only (calc uses InputSidebarPanel) ─────
 PAGE_REGISTRY = [
@@ -300,7 +300,7 @@ class ShellWindow(QMainWindow):
             w = self._page_widgets.get(page_id)
             if w:
                 self._page_stack.setCurrentWidget(w)
-            from theme import PAGE_META
+            from core.theme import PAGE_META
             label = PAGE_META.get(page_id, {}).get("label", page_id.upper())
             self._swap_col3_header(label)
 
