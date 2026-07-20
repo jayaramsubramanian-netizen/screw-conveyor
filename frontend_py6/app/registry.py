@@ -30,9 +30,10 @@ from typing import Iterator, Sequence
 from modules.base import ModuleWorkspace
 from modules.conveyor.workspace import ConveyorWorkspace
 from modules.process.mixer import MixerWorkspace
+from modules.process.dryer import DryerWorkspace
 from modules.stubs import (
     FamilyWorkspace, FeederWorkspace,
-    DryerWorkspace, CoolerWorkspace, SeparatorWorkspace,
+    CoolerWorkspace, SeparatorWorkspace,
     ReactorWorkspace, CompactorWorkspace,
     DatabaseWorkspace, ManualWorkspace,
 )

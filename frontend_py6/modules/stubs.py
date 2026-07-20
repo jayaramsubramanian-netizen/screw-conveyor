@@ -16,11 +16,10 @@ once the real module lands with its own panels and helpers.
 
 Remaining, roughly in porting order:
 
-    dryer, cooler, reactor      → modules/process/<name>/  — these three
-                                  return a `history` array and additionally
-                                  need the AxialChart port (Recharts →
-                                  pyqtgraph), which is why they were left
-                                  out of modules/process/common.py
+    cooler, reactor             → modules/process/<name>/  — both return a
+                                  `history` array and use the AxialChart in
+                                  modules/process/axial_chart.py, already
+                                  ported for the Dryer
     separator, compactor        → modules/process/<name>/
     feeder                      → modules/feeder/   (VL series, §2.3)
     family                      → modules/family/
@@ -67,12 +66,6 @@ class FeederWorkspace(StubWorkspace):
     page_id = "feeder"
     meta = ModuleMeta(label="Feeder / Doser", icon="🎚️", group="conveyor")
     note = "Source: FeederPage.tsx (299 lines) → modules/feeder/  ·  VL series"
-
-
-class DryerWorkspace(StubWorkspace):
-    page_id = "dryer"
-    meta = ModuleMeta(label="Screw Dryer", icon="🌡️", group="process")
-    note = "Source: DryerPage.tsx → modules/process/dryer/  ·  needs AxialChart"
 
 
 class CoolerWorkspace(StubWorkspace):
