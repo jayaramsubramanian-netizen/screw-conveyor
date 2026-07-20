@@ -1,14 +1,22 @@
 """
-components/shell.py — VECTRIX™ Screw Conveyor shell chrome
+app/chrome.py — VECTRIX™ application chrome
 ═══════════════════════════════════════════════════════════════════════════
 AppTitleBar  48 px  brand + module switcher + backend status + PDF button
 PageMenuBar  28 px  Conveyor / Process / Reference pull-down menus
 TopNav       76 px  app dropdown + tab pills + KPI chips
 
+Moved here from components/shell.py in step 4 and renamed: "shell" now
+means app/shell.py (ShellWindow, the workspace host), while this file is
+only the frame drawn around a workspace. Nothing here knows about any
+specific module — TopNav's tabs arrive via set_tabs() from whichever
+workspace is active, rather than being built from the conveyor's CALC_TABS
+at construction as they were before.
+
 Pylance fixes applied:
   - QAction constructed with parent only; shortcut/triggered wired separately
     (PySide6 ≥ 6.4 removed keyword-argument overloads for QAction.__init__)
   - All Optional[] annotations added to parent parameters
+  - QLayout.takeAt() returns Optional[QLayoutItem]; guarded before .widget()
 """
 
 from __future__ import annotations
@@ -365,6 +373,11 @@ class TopNav(QFrame):
         """
         while self._tab_row.count():
             item = self._tab_row.takeAt(0)
+            # takeAt() is typed Optional[QLayoutItem]. count() > 0 makes None
+            # unreachable in practice, but the guard keeps the static type
+            # honest rather than suppressing the diagnostic.
+            if item is None:
+                break
             w = item.widget()
             if w is not None:
                 w.deleteLater()

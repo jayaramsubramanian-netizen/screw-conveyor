@@ -42,6 +42,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Sequence
 
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QWidget
 
 
@@ -87,6 +88,16 @@ class ModuleWorkspace(QWidget):
 
     page_id: str = ""
     meta: ModuleMeta = ModuleMeta(label="Untitled")
+
+    #: Emitted with a flat dict when the module has fresh headline numbers
+    #: for the nav KPI chips. The shell forwards these to the chrome without
+    #: inspecting them — it does not know or care which module is active.
+    #: A module with no headline numbers simply never emits, and the shell
+    #: blanks the chips on every page change.
+    kpis_changed = Signal(dict)
+
+    #: Emitted with the count of critical failures, for the nav fail badge.
+    fail_count_changed = Signal(int)
 
     #: Set True in the class body of an intermediate base that is not itself
     #: a registrable module (e.g. ModuleShell). Deliberately NOT a PEP 487

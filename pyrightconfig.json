@@ -1,0 +1,49 @@
+{
+  "//": [
+    "Pylance/Pyright configuration for the VECTRIX repo.",
+    "",
+    "This repo has two independent Python source roots, neither of which is",
+    "the repo root itself:",
+    "",
+    "  frontend_py6/   the PySide6 desktop app. main.py runs from inside this",
+    "                  directory, so its own imports are top-level absolute:",
+    "                  `from core.theme import ...`, `from modules.base import ...`.",
+    "  .               the FastAPI backend, imported as `backend.core.engine`",
+    "                  etc. from the repo root.",
+    "",
+    "Without extraPaths, Pylance roots only at the repo root and reports",
+    "every `modules.*` and `core.*` import in frontend_py6 as unresolved,",
+    "even though the app runs correctly. That is a false positive from the",
+    "editor, not a defect in the code.",
+    "",
+    "Keep frontend_py6 FIRST. The repo root contains a legacy main.py that",
+    "shadows frontend_py6/main.py when the root is searched first — the same",
+    "collision that breaks `import main` at runtime if sys.path is ordered",
+    "the other way."
+  ],
+
+  "extraPaths": [
+    "frontend_py6",
+    "."
+  ],
+
+  "include": [
+    "frontend_py6",
+    "backend"
+  ],
+
+  "exclude": [
+    "**/__pycache__",
+    "**/node_modules",
+    "temp_pip_check",
+    "frontend",
+    ".git"
+  ],
+
+  "typeCheckingMode": "basic",
+  "reportMissingImports": "error",
+  "reportMissingModuleSource": "warning",
+
+  "//pythonVersion": "Match your interpreter. Adjust if you are not on 3.12.",
+  "pythonVersion": "3.12"
+}
