@@ -21,8 +21,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont
 
-from app.chrome import ShellWindow
-
+from app.shell import ShellWindow
 
 def main() -> None:
     app = QApplication(sys.argv)

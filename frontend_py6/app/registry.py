@@ -31,10 +31,11 @@ from modules.base import ModuleWorkspace
 from modules.conveyor.workspace import ConveyorWorkspace
 from modules.process.mixer import MixerWorkspace
 from modules.process.dryer import DryerWorkspace
+from modules.process.cooler import CoolerWorkspace
+from modules.process.reactor import ReactorWorkspace
 from modules.stubs import (
     FamilyWorkspace, FeederWorkspace,
-    CoolerWorkspace, SeparatorWorkspace,
-    ReactorWorkspace, CompactorWorkspace,
+    SeparatorWorkspace, CompactorWorkspace,
     DatabaseWorkspace, ManualWorkspace,
 )
 

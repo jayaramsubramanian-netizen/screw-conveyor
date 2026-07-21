@@ -16,11 +16,8 @@ once the real module lands with its own panels and helpers.
 
 Remaining, roughly in porting order:
 
-    cooler, reactor             → modules/process/<name>/  — both return a
-                                  `history` array and use the AxialChart in
-                                  modules/process/axial_chart.py, already
-                                  ported for the Dryer
-    separator, compactor        → modules/process/<name>/
+    separator, compactor        → modules/process/<name>/  — scalar results
+                                  only, no history array, so no AxialChart
     feeder                      → modules/feeder/   (VL series, §2.3)
     family                      → modules/family/
     db                          → modules/database/ — canonical source still
@@ -68,22 +65,10 @@ class FeederWorkspace(StubWorkspace):
     note = "Source: FeederPage.tsx (299 lines) → modules/feeder/  ·  VL series"
 
 
-class CoolerWorkspace(StubWorkspace):
-    page_id = "cooler"
-    meta = ModuleMeta(label="Screw Cooler", icon="❄️", group="process")
-    note = "Source: CoolerPage.tsx → modules/process/cooler/  ·  needs AxialChart"
-
-
 class SeparatorWorkspace(StubWorkspace):
     page_id = "separator"
     meta = ModuleMeta(label="Separator", icon="🔀", group="process")
     note = "Source: SeparatorPage.tsx → modules/process/separator/"
-
-
-class ReactorWorkspace(StubWorkspace):
-    page_id = "reactor"
-    meta = ModuleMeta(label="Screw Reactor", icon="⚗️", group="process")
-    note = "Source: ReactorPage.tsx → modules/process/reactor/  ·  needs AxialChart"
 
 
 class CompactorWorkspace(StubWorkspace):

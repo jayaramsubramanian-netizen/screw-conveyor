@@ -1,0 +1,37 @@
+{
+  "//": [
+    "Pyright/Pylance config for the PySide6 desktop app.",
+    "",
+    "PLACE THIS INSIDE frontend_py6/ — beside app/, core/ and modules/.",
+    "",
+    "It is deliberately self-relative: every path below is '.', meaning",
+    "'the directory this config file sits in'. Nothing here names a parent",
+    "folder, so the same file works from D:\\Projects\\Vectrix\\frontend_py6,",
+    "D:\\Personal Documents\\Screw Conveyor\\screw-conveyor\\frontend_py6, or",
+    "any checkout path, in any IDE, with no edit.",
+    "",
+    "This replaces the earlier repo-root config, which hardcoded",
+    "extraPaths: ['frontend_py6'] and therefore broke the moment the parent",
+    "directory was named anything else.",
+    "",
+    "Why it is needed at all: app/main.py executes from inside this",
+    "directory, so the app's own imports are top-level absolute --",
+    "`from core.theme import ...`, `from modules.base import ...`. An",
+    "editor rooted anywhere above here cannot resolve those without being",
+    "told this directory is a source root.",
+    "",
+    "If your IDE opens the REPO ROOT rather than this folder, Pylance reads",
+    "only a config at that root. In that case either open frontend_py6 as",
+    "the workspace folder, or add a second config up there -- that one has",
+    "to name this directory, which is unavoidable when the root is above it."
+  ],
+
+  "extraPaths": ["."],
+  "include": ["."],
+
+  "exclude": ["**/__pycache__", "**/node_modules"],
+
+  "typeCheckingMode": "basic",
+  "reportMissingImports": "error",
+  "reportMissingModuleSource": "warning"
+}
