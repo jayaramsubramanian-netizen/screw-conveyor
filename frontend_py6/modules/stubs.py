@@ -14,12 +14,10 @@ packages: nine directories containing a four-line class each would imply
 structure that does not exist yet, and would have to be rewritten anyway
 once the real module lands with its own panels and helpers.
 
+All six process modules are now ported.
+
 Remaining, roughly in porting order:
 
-    separator, compactor        → modules/process/<name>/  — scalar results
-                                  only, no history array, so no AxialChart
-    feeder                      → modules/feeder/   (VL series, §2.3)
-    family                      → modules/family/
     db                          → modules/database/ — canonical source still
                                   unresolved: root DatabasePage.jsx (3,281
                                   lines) vs frontend/src DatabasePage.tsx
@@ -51,30 +49,6 @@ class StubWorkspace(ModuleWorkspace):
         layout.addWidget(Placeholder(
             f"{self.meta.icon}  {self.meta.label}", self.note,
         ))
-
-
-class FamilyWorkspace(StubWorkspace):
-    page_id = "family"
-    meta = ModuleMeta(label="Family Designer", icon="📊", group="conveyor")
-    note = "Source: FamilyPage.tsx (447 lines) → modules/family/"
-
-
-class FeederWorkspace(StubWorkspace):
-    page_id = "feeder"
-    meta = ModuleMeta(label="Feeder / Doser", icon="🎚️", group="conveyor")
-    note = "Source: FeederPage.tsx (299 lines) → modules/feeder/  ·  VL series"
-
-
-class SeparatorWorkspace(StubWorkspace):
-    page_id = "separator"
-    meta = ModuleMeta(label="Separator", icon="🔀", group="process")
-    note = "Source: SeparatorPage.tsx → modules/process/separator/"
-
-
-class CompactorWorkspace(StubWorkspace):
-    page_id = "compactor"
-    meta = ModuleMeta(label="Compactor", icon="🗜️", group="process")
-    note = "Source: CompactorPage.tsx → modules/process/compactor/"
 
 
 class DatabaseWorkspace(StubWorkspace):

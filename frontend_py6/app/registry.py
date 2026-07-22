@@ -33,11 +33,11 @@ from modules.process.mixer import MixerWorkspace
 from modules.process.dryer import DryerWorkspace
 from modules.process.cooler import CoolerWorkspace
 from modules.process.reactor import ReactorWorkspace
-from modules.stubs import (
-    FamilyWorkspace, FeederWorkspace,
-    SeparatorWorkspace, CompactorWorkspace,
-    DatabaseWorkspace, ManualWorkspace,
-)
+from modules.process.separator import SeparatorWorkspace
+from modules.process.compactor import CompactorWorkspace
+from modules.process.feeder import FeederWorkspace
+from modules.family import FamilyWorkspace
+from modules.stubs import DatabaseWorkspace, ManualWorkspace
 
 
 MODULES: Sequence[type[ModuleWorkspace]] = (

@@ -29,7 +29,14 @@
   "extraPaths": ["."],
   "include": ["."],
 
-  "exclude": ["**/__pycache__", "**/node_modules"],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    ".venv",
+    "venv",
+    "**/*.egg-info"
+  ],
 
   "typeCheckingMode": "basic",
   "reportMissingImports": "error",

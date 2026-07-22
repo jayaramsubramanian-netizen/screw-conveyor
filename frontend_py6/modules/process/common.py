@@ -191,6 +191,32 @@ class Field(QWidget):
             return self._editor.currentData()      # type: ignore[union-attr]
         return self._editor.value()                # type: ignore[union-attr]
 
+    def set_options(self, options: Sequence[tuple[str, str]]) -> None:
+        """
+        Replace a combo Field's options, preserving the current selection
+        where possible.
+
+        Exists so callers populating a combo from the backend (the Family
+        Designer's material list) do not reach into Field._editor. That
+        attribute is typed QWidget, so every combo call through it is a
+        static-analysis error, and it couples callers to this widget's
+        internals.
+
+        No-op on a numeric Field.
+        """
+        if not self._is_combo:
+            return
+        combo = self._editor
+        assert isinstance(combo, QComboBox)
+        current = combo.currentData()
+        combo.blockSignals(True)
+        combo.clear()
+        for val, label in options:
+            combo.addItem(label, val)
+        idx = combo.findData(current)
+        combo.setCurrentIndex(idx if idx >= 0 else 0)
+        combo.blockSignals(False)
+
     def set_value(self, value: Any) -> None:
         if self._is_combo:
             idx = self._editor.findData(value)     # type: ignore[union-attr]
@@ -393,6 +419,61 @@ class Card(QFrame):
     def add_widget(self, w: _W) -> _W:
         self._layout.addWidget(w)
         return w
+
+
+# ── WarningsPanel ─────────────────────────────────────────────────────────
+
+class WarningsPanel(QWidget):
+    """
+    Stacked critical / advisory / optimisation notices.
+
+    Port of the warns block in FeederPage.tsx. Lives here rather than in the
+    feeder package because `warns: {crit, adv, opt}` is the conveyor
+    engine's standard warning shape — ConveyorWorkspace already reads it for
+    the nav fail badge — so any module surfacing warnings should render them
+    identically.
+
+    Hides itself when every bucket is empty, matching the .tsx guard
+    `(r.warns?.crit?.length > 0 || r.warns?.adv?.length > 0)`.
+    """
+
+    _STYLES = (
+        ("crit", DANGER,  "rgba(224,82,82,0.08)",  "✗ [CRITICAL] "),
+        ("adv",  WARNING, "rgba(217,142,0,0.07)",  "▲ [ADVISORY] "),
+        ("opt",  TEAL,    "rgba(45,212,191,0.07)", "💡 "),
+    )
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self._layout = QVBoxLayout(self)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self._layout.setSpacing(6)
+        self.setVisible(False)
+
+    def set_warnings(self, warns: Optional[dict]) -> None:
+        while self._layout.count():
+            item = self._layout.takeAt(0)
+            if item is None:
+                break
+            w = item.widget()
+            if w is not None:
+                w.deleteLater()
+
+        warns = warns or {}
+        any_shown = False
+        for key, colour, bg, prefix in self._STYLES:
+            for msg in (warns.get(key) or []):
+                lbl = QLabel(f"{prefix}{msg}")
+                lbl.setWordWrap(True)
+                lbl.setStyleSheet(
+                    f"background-color: {bg}; border: 1px solid {colour}; "
+                    f"border-radius: 6px; padding: 6px 10px; "
+                    f"font-size: 10px; color: {colour};"
+                )
+                self._layout.addWidget(lbl)
+                any_shown = True
+
+        self.setVisible(any_shown)
 
 
 # ── RunBtn ────────────────────────────────────────────────────────────────

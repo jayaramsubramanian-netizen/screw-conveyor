@@ -187,7 +187,7 @@ class AxialProfilePanel(QWidget):
         self._hover_lbl.setVisible(False)
         outer.addWidget(self._hover_lbl)
         self._proxy = pg.SignalProxy(
-            self._plot.scene().sigMouseMoved, rateLimit=30, slot=self._on_mouse_moved
+            self._plot.scene().sigMouseMoved, rateLimit=30, slot=self._on_mouse_moved  # type: ignore[attr-defined]
         )
 
         # ── Legend (static) ─────────────────────────────────────────────
@@ -386,7 +386,7 @@ class AxialProfilePanel(QWidget):
         if not self._plot.sceneBoundingRect().contains(pos):
             self._hover_lbl.setVisible(False)
             return
-        mouse_point = self._plot.getPlotItem().vb.mapSceneToView(pos)
+        mouse_point = self._plot.getPlotItem().vb.mapSceneToView(pos)  # type: ignore[union-attr]
         target_x = mouse_point.x()
 
         nearest = min(self._segments, key=lambda s: abs(s.get("x", 0.0) - target_x))
@@ -490,7 +490,7 @@ class AxialProfilePanel(QWidget):
         self._defl_curve.setData(xs, ys, pen=pg.mkPen(defl_color, width=2))
 
         # Clear and redraw reference lines
-        for item in list(self._defl_plot.getPlotItem().items):
+        for item in list(self._defl_plot.getPlotItem().items):  # type: ignore[union-attr]
             if isinstance(item, pg.InfiniteLine):
                 self._defl_plot.removeItem(item)
 

@@ -5,18 +5,7 @@ Direct port of the bucket-elevator equivalents — ColHeader, Placeholder,
 NavTabButton, ModulePill, KpiChip, fail_warn_badges.
 No backend dependency in this file.
 
-Updated to follow the typography/text-color rules documented at the top
-of theme.py:
-  - Every font-size now uses an FS_* constant (16px floor everywhere)
-  - FONT_FAMILY (Arial) applied to every stylesheet block
-  - All body/label/header text now uses TEXT (white) instead of
-    TEXT3/MUTED — those two are chrome-only now, not for readable text
-  - Pill heights (TAB_PILL_HEIGHT, MODULE_PILL_HEIGHT) already bumped
-    in theme.py to comfortably fit the larger text
-  - KpiChip enlarged (was 88×52) to fit 16px label/unit + a legible
-    value size without cramping
-
-Pylance fixes applied (carried over from before):
+Pylance fixes applied:
   - ColHeader.sub / action use Optional[str] / Optional[QWidget]
   - ModulePill parent uses Optional[QWidget]
   - QRectF imported from QtCore (not QtGui) for PySide6 ≥ 6.4
@@ -32,11 +21,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QRect, QRectF
 from PySide6.QtGui import QPainter, QColor, QFont, QPen
 
-from theme import (
+from core.theme import (
     BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
     PRIMARY, SUCCESS, WARNING, DANGER,
-    FONT_FAMILY, FS_MIN, FS_UNIT, FS_LABEL, FS_BODY, FS_VALUE,
-    FS_SUBHEAD, FS_HEAD, FS_TITLE, FS_DISPLAY,
     TAB_PILL_HEIGHT, TAB_PILL_RADIUS,
     MODULE_PILL_HEIGHT, MODULE_PILL_RADIUS,
 )
@@ -53,27 +40,24 @@ class ColHeader(QFrame):
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
-        self.setFixedHeight(44)
+        self.setFixedHeight(36)
         self.setStyleSheet(
             f"background-color: {PANEL}; border-bottom: 1px solid {BORDER};"
         )
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(14, 0, 14, 0)
+        layout.setContentsMargins(12, 0, 12, 0)
         layout.setSpacing(0)
 
         text_box = QHBoxLayout()
-        text_box.setSpacing(9)
+        text_box.setSpacing(7)
         lbl = QLabel(label.upper())
         lbl.setStyleSheet(
-            f"color: {TEXT}; font-family: '{FONT_FAMILY}'; "
-            f"font-size: {FS_UNIT}px; font-weight: 700; letter-spacing: 1px;"
+            f"color: {TEXT3}; font-size: 9.5px; font-weight: 700; letter-spacing: 1px;"
         )
         text_box.addWidget(lbl)
         if sub:
             sub_lbl = QLabel(sub)
-            sub_lbl.setStyleSheet(
-                f"color: {TEXT}; font-family: '{FONT_FAMILY}'; font-size: {FS_UNIT}px;"
-            )
+            sub_lbl.setStyleSheet(f"color: {MUTED}; font-size: 8.5px;")
             text_box.addWidget(sub_lbl)
         layout.addLayout(text_box)
         layout.addStretch()
@@ -94,16 +78,15 @@ class Placeholder(QWidget):
         self.setStyleSheet(f"background-color: {BG};")
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.setSpacing(8)
+        layout.setSpacing(6)
 
         icon_lbl = QLabel("○")
-        icon_lbl.setStyleSheet(f"color: {BORDER}; font-size: 34px;")
+        icon_lbl.setStyleSheet(f"color: {BORDER}; font-size: 32px;")
         icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         title_lbl = QLabel(title)
         title_lbl.setStyleSheet(
-            f"color: {TEXT}; font-family: '{FONT_FAMILY}'; "
-            f"font-size: {FS_SUBHEAD}px; font-weight: 600;"
+            f"color: {TEXT3}; font-size: 13px; font-weight: 600;"
         )
         title_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -112,9 +95,7 @@ class Placeholder(QWidget):
 
         if note:
             note_lbl = QLabel(note)
-            note_lbl.setStyleSheet(
-                f"color: {TEXT}; font-family: '{FONT_FAMILY}'; font-size: {FS_UNIT}px;"
-            )
+            note_lbl.setStyleSheet(f"color: {MUTED}; font-size: 10px;")
             note_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(note_lbl)
 
@@ -138,20 +119,18 @@ class NavTabButton(QPushButton):
             self.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {PRIMARY}; color: white;
-                    font-family: '{FONT_FAMILY}';
                     border-style: none; border-radius: {TAB_PILL_RADIUS}px;
-                    padding: 0px 18px; font-size: {FS_BODY}px; font-weight: 600;
+                    padding: 0px 16px; font-size: 12.5px; font-weight: 600;
                 }}
             """)
         else:
             self.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: transparent; color: {TEXT};
-                    font-family: '{FONT_FAMILY}';
+                    background-color: transparent; color: {TEXT3};
                     border-style: none; border-radius: {TAB_PILL_RADIUS}px;
-                    padding: 0px 18px; font-size: {FS_BODY}px;
+                    padding: 0px 16px; font-size: 12.5px;
                 }}
-                QPushButton:hover {{ background-color: {PANEL2}; }}
+                QPushButton:hover {{ background-color: {PANEL2}; color: {TEXT2}; }}
             """)
 
 
@@ -177,32 +156,26 @@ class ModulePill(QPushButton):
             self.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {PRIMARY}; color: white;
-                    font-family: '{FONT_FAMILY}';
                     border-style: none; border-radius: {MODULE_PILL_RADIUS}px;
-                    padding: 0px 16px; font-size: {FS_BODY}px; font-weight: 600;
+                    padding: 0px 14px; font-size: 12px; font-weight: 600;
                 }}
             """)
         else:
             self.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: transparent; color: {TEXT};
-                    font-family: '{FONT_FAMILY}';
+                    background-color: transparent; color: {TEXT3};
                     border-style: none; border-radius: {MODULE_PILL_RADIUS}px;
-                    padding: 0px 16px; font-size: {FS_BODY}px;
+                    padding: 0px 14px; font-size: 12px;
                 }}
-                QPushButton:disabled {{ color: {TEXT2}; }}
-                QPushButton:hover:!disabled {{ background-color: {PANEL2}; }}
+                QPushButton:disabled {{ color: {MUTED}; }}
+                QPushButton:hover:!disabled {{ color: {TEXT2}; }}
             """)
 
 
 class KpiChip(QWidget):
-    """
-    Custom-painted KPI chip — label top-left, unit top-right, large value
-    centred. Enlarged from the original 88×52 to comfortably fit 16px
-    label/unit text plus a legible value size without cramping.
-    """
+    """Custom-painted KPI chip — label top-left, unit top-right, large value centred."""
 
-    _W, _H = 112, 66
+    _W, _H = 88, 52
 
     def __init__(self, label: str, unit: str, parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -210,7 +183,7 @@ class KpiChip(QWidget):
         self._label = label
         self._unit  = unit
         self._value = "—"
-        self._color = TEXT
+        self._color = TEXT3
 
     def set_value(self, value: str, color: Optional[str] = None) -> None:
         self._value = value
@@ -227,20 +200,20 @@ class KpiChip(QWidget):
         p.setBrush(QColor(PANEL2))
         p.drawRoundedRect(QRectF(0.6, 0.6, W - 1.2, H - 1.2), 8.0, 8.0)
 
-        p.setPen(QColor(TEXT))
-        f_small = QFont(FONT_FAMILY)
-        f_small.setPixelSize(FS_UNIT)
+        p.setPen(QColor(TEXT3))
+        f_small = QFont()
+        f_small.setPixelSize(9)
         f_small.setBold(True)
         p.setFont(f_small)
-        p.drawText(QRect(8, 6, W // 2, 18), Qt.AlignmentFlag.AlignLeft, self._label)
-        p.drawText(QRect(W // 2, 6, W // 2 - 8, 18), Qt.AlignmentFlag.AlignRight, self._unit)
+        p.drawText(QRect(7, 5, W // 2, 14), Qt.AlignmentFlag.AlignLeft, self._label)
+        p.drawText(QRect(W // 2, 5, W // 2 - 7, 14), Qt.AlignmentFlag.AlignRight, self._unit)
 
         p.setPen(QColor(self._color))
-        f_val = QFont(FONT_FAMILY)
-        f_val.setPixelSize(FS_DISPLAY - 6)   # 24px — clearly emphasized, still floor-safe
+        f_val = QFont()
+        f_val.setPixelSize(20)
         f_val.setBold(True)
         p.setFont(f_val)
-        p.drawText(QRect(0, 20, W, H - 24), Qt.AlignmentFlag.AlignCenter, self._value)
+        p.drawText(QRect(0, 12, W, H - 8), Qt.AlignmentFlag.AlignCenter, self._value)
         p.end()
 
 
@@ -249,23 +222,21 @@ def fail_warn_badges(n_fail: int, n_warn: int) -> QWidget:
     box = QWidget()
     layout = QHBoxLayout(box)
     layout.setContentsMargins(0, 0, 0, 0)
-    layout.setSpacing(6)
+    layout.setSpacing(5)
     if n_fail > 0:
         lbl = QLabel(f"{n_fail} FAIL")
         lbl.setStyleSheet(
-            f"background-color: rgba(224,82,82,.15); color: {DANGER}; "
-            f"font-family: '{FONT_FAMILY}'; "
-            f"border-radius: 999px; padding: 3px 10px; "
-            f"font-size: {FS_UNIT}px; font-weight: 700;"
+            f"background-color: rgba(224,82,82,.12); color: {DANGER}; "
+            f"border: 1px solid rgba(224,82,82,.3); border-radius: 999px; "
+            f"padding: 2px 7px; font-size: 8.5px; font-weight: 700;"
         )
         layout.addWidget(lbl)
     if n_warn > 0:
         lbl = QLabel(f"{n_warn} WARN")
         lbl.setStyleSheet(
-            f"background-color: rgba(217,142,0,.15); color: {WARNING}; "
-            f"font-family: '{FONT_FAMILY}'; "
-            f"border-radius: 999px; padding: 3px 10px; "
-            f"font-size: {FS_UNIT}px; font-weight: 700;"
+            f"background-color: rgba(217,142,0,.12); color: {WARNING}; "
+            f"border: 1px solid rgba(217,142,0,.3); border-radius: 999px; "
+            f"padding: 2px 7px; font-size: 8.5px; font-weight: 700;"
         )
         layout.addWidget(lbl)
     return box

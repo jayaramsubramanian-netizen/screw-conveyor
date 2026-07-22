@@ -110,6 +110,8 @@ class ShellWindow(QMainWindow):
             w = cls()
             w.kpis_changed.connect(self.top_nav.update_kpis)
             w.fail_count_changed.connect(self.top_nav.update_fail_badge)
+            w.apply_requested.connect(self._on_apply_requested)
+            w.set_peer_resolver(self._peer_payload)
             self._stack.addWidget(w)
             self._workspaces[cls.page_id] = w
 
@@ -149,6 +151,27 @@ class ShellWindow(QMainWindow):
     def _on_tab_changed(self, tab_id: str) -> None:
         if self._active is not None:
             self._active.on_tab_changed(tab_id)
+
+    # ── cross-module exchange ─────────────────────────────────────────────
+
+    def _peer_payload(self, page_id: str) -> dict:
+        """Resolver handed to every workspace. Returns a peer's current
+        inputs as plain data — never the widget — so modules stay decoupled."""
+        w = self._workspaces.get(page_id)
+        return w.export_payload() if w is not None else {}
+
+    def _on_apply_requested(self, target_id: str, payload: dict) -> None:
+        """Hand a design from one module to another and switch to it.
+
+        The switch is deliberate: applying a design the user cannot see the
+        effect of is a silent state change. FamilyPage.tsx gets this free
+        because both pages read one store; here the move has to be explicit.
+        """
+        target = self._workspaces.get(target_id)
+        if target is None:
+            return
+        target.receive_payload(payload)
+        self._show_module(target_id)
 
     # ── backend health ────────────────────────────────────────────────────
 

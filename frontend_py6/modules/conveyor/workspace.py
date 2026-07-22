@@ -323,6 +323,28 @@ class ConveyorWorkspace(ModuleWorkspace):
         self._col3_header.deleteLater()
         self._col3_header = new_header
 
+    # ── cross-module exchange ─────────────────────────────────────────────
+
+    def export_payload(self) -> dict:
+        """Current sidebar inputs, for a peer module to read.
+
+        Reads the sidebar live rather than returning _last_payload, so a
+        peer sees what is on screen now, not what was last calculated.
+        """
+        return self._sidebar.get_payload()
+
+    def receive_payload(self, payload: dict) -> None:
+        """Load a design handed over by another module and recalculate.
+
+        set_payload is a partial update — only keys present are touched —
+        so the Family Designer sending D/N/P/L/mat/ang/surge leaves every
+        other conveyor input (bearing, gearbox, wear allowance) intact.
+        Matches applyDesign() in FamilyPage.tsx, which spreads into the
+        shared store rather than replacing it.
+        """
+        self._sidebar.set_payload(payload)
+        self.run_calculation(self._sidebar.get_payload())
+
     # ── accessors used by the shell ───────────────────────────────────────
 
     def current_payload(self) -> dict:

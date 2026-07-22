@@ -99,6 +99,18 @@ class ModuleWorkspace(QWidget):
     #: Emitted with the count of critical failures, for the nav fail badge.
     fail_count_changed = Signal(int)
 
+    #: Emitted as (target_page_id, payload) when this module wants to hand a
+    #: design to another module — e.g. the Family Designer's "Apply to
+    #: Designer", which loads a swept candidate into the Screw Conveyor.
+    #:
+    #: The shell routes this: it calls the target's receive_payload() and
+    #: switches to it. Deliberately indirect. FamilyPage.tsx and CalcPage.tsx
+    #: share a global useCalcStore(), but a direct equivalent here would mean
+    #: modules/family importing modules/conveyor, which modules/__init__.py
+    #: forbids — and would make the two impossible to port, test, or delete
+    #: independently.
+    apply_requested = Signal(str, dict)
+
     #: Set True in the class body of an intermediate base that is not itself
     #: a registrable module (e.g. ModuleShell). Deliberately NOT a PEP 487
     #: class keyword argument — PySide6's Shiboken metaclass raises
@@ -126,6 +138,36 @@ class ModuleWorkspace(QWidget):
                 f"{cls.__name__} must define a non-empty page_id — the "
                 f"registry keys on it."
             )
+
+    # ── cross-module exchange (shell-mediated) ────────────────────────────
+
+    def set_peer_resolver(self, resolver) -> None:
+        """
+        Injected by the shell at construction. `resolver(page_id) -> dict`
+        returns another module's current inputs via its export_payload().
+
+        A module asks for a peer by id and gets plain data back — never a
+        widget reference — so no module holds a handle on another.
+        """
+        self._peer_resolver = resolver
+
+    def peer_payload(self, page_id: str) -> dict:
+        """Current inputs of another module, or {} if unavailable."""
+        resolver = getattr(self, "_peer_resolver", None)
+        if resolver is None:
+            return {}
+        try:
+            return resolver(page_id) or {}
+        except Exception:
+            # A peer failing to export must never break the caller's render.
+            return {}
+
+    def export_payload(self) -> dict:
+        """This module's current inputs, for a peer to read. {} by default."""
+        return {}
+
+    def receive_payload(self, payload: dict) -> None:
+        """Accept inputs handed over by another module. No-op by default."""
 
     # ── optional tab strip ────────────────────────────────────────────────
 
