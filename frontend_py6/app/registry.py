@@ -37,7 +37,8 @@ from modules.process.separator import SeparatorWorkspace
 from modules.process.compactor import CompactorWorkspace
 from modules.process.feeder import FeederWorkspace
 from modules.family import FamilyWorkspace
-from modules.stubs import DatabaseWorkspace, ManualWorkspace
+from modules.manual import ManualWorkspace
+from modules.stubs import DatabaseWorkspace
 
 
 MODULES: Sequence[type[ModuleWorkspace]] = (

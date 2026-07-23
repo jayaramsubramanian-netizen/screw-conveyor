@@ -22,7 +22,6 @@ Remaining, roughly in porting order:
                                   unresolved: root DatabasePage.jsx (3,281
                                   lines) vs frontend/src DatabasePage.tsx
                                   (898 lines)
-    help                        → modules/manual/
 """
 
 from __future__ import annotations
@@ -55,9 +54,3 @@ class DatabaseWorkspace(StubWorkspace):
     page_id = "db"
     meta = ModuleMeta(label="Material Database", icon="🗄️", group="reference")
     note = "Canonical source unresolved — DatabasePage.jsx (3,281) vs .tsx (898)"
-
-
-class ManualWorkspace(StubWorkspace):
-    page_id = "help"
-    meta = ModuleMeta(label="User Manual", icon="📘", group="reference")
-    note = "Source: ManualPage.tsx → modules/manual/  ·  renders manual.html"

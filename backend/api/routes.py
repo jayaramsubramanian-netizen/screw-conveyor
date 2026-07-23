@@ -34,7 +34,7 @@ from ..models.schemas import (
     HealthResponse, AxialSegment,
     MotorOut, DriveOut, CostItemOut,
 )
-from ..core.engine import calc_engine, calc_fill, calc_lambda, calc_ks, calc_wc, psz_of, a_fact
+from ..core.engine import calc_engine, calc_fill, calc_lambda, calc_ks, calc_wc, psz_of, a_fact, calc_structural
 
 router = APIRouter()
 
@@ -113,6 +113,20 @@ def calculate(payload: EngineInput, db: Session = Depends(get_db)):
         "wc":       calc_wc(mat),
         "psz":      psz_of(mat),
     }
+
+    # Structural sizing. Ported from calcStructural() in CalcPage.tsx, which
+    # ran client-side — this is now backend-authoritative (see engine.py and
+    # STRUCTURAL_REVIEW_NOTE.md option 1). The .tsx called it with
+    #   fill = R.cap?.fill_actual || R.cap?.fill || 0.30
+    # so fill is read from the cap block with the same 0.30 fallback, keeping
+    # the structural pass consistent with the capacity result.
+    cap = result.get("cap", {})
+    fill_struct = cap.get("fill_actual") or cap.get("fill") or 0.30
+    result["structural"] = calc_structural(
+        inp["D"], inp["L"],
+        mat.get("rho", 1.2), inp.get("ang", 0) or 0,
+        fill_struct, mat.get("abr", "Medium"), inp.get("temp_c", 20) or 20,
+    )
     return result
 
 

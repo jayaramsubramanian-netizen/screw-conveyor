@@ -9,6 +9,10 @@
 #   uvicorn backend.main:app --reload
 
 PySide6>=6.7.0
+PySide6-Addons>=6.7.0  # QWebEngineView — renders the manual (modules/manual).
+                       # `pip install PySide6` normally pulls this in already;
+                       # listed explicitly because an Essentials-only install
+                       # silently drops the manual to a browser-link fallback.
 pyqtgraph>=0.13.7      # interactive charts (line, bar, regime map)
 numpy>=1.26.0          # pyqtgraph dependency + engineering arrays
 matplotlib>=3.9.0      # PDF report figure generation only

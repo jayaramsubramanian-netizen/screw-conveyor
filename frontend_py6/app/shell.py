@@ -193,6 +193,22 @@ class ShellWindow(QMainWindow):
             # avoids a module doing network work before there is a backend.
             self._active.on_activate()
 
+    def closeEvent(self, event) -> None:
+        """
+        Wait for the health probe before tearing down.
+
+        Qt aborts the process if a QThread is destroyed while still running
+        ("QThread: Destroyed while thread is still running"). The probe is a
+        blocking HTTP call with a timeout, so closing the window during app
+        start — or any time the backend is unreachable and the request is
+        still waiting — would otherwise crash on exit rather than close.
+        """
+        thread = getattr(self, "_health_thread", None)
+        if thread is not None and thread.isRunning():
+            thread.quit()
+            thread.wait(3000)
+        super().closeEvent(event)
+
     # ── misc ──────────────────────────────────────────────────────────────
 
     def _on_pdf_requested(self) -> None:

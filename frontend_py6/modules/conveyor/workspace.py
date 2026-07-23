@@ -63,6 +63,9 @@ from .results_panel import ResultsPanel
 from .axial_panel import AxialProfilePanel
 from .status_panel import StatusPanel
 from .optimizer_panel import AutoOptimizerPanel
+from .detail_panels import (
+    ChecksPanel, WearPanel, StructuralPanel, MaterialsPanel,
+)
 
 
 _CALC_TAB_INDEX = {t["id"]: i for i, t in enumerate(CALC_TABS)}
@@ -144,6 +147,10 @@ class ConveyorWorkspace(ModuleWorkspace):
         self._results_panel: Optional[ResultsPanel] = None
         self._axial_panel: Optional[AxialProfilePanel] = None
         self._optimizer_panel: Optional[AutoOptimizerPanel] = None
+        self._checks_panel: Optional[ChecksPanel] = None
+        self._wear_panel: Optional[WearPanel] = None
+        self._structural_panel: Optional[StructuralPanel] = None
+        self._materials_panel: Optional[MaterialsPanel] = None
 
         for t in CALC_TABS:
             if t["id"] == "design":
@@ -161,6 +168,22 @@ class ConveyorWorkspace(ModuleWorkspace):
                     apply_overrides=self._on_optimizer_apply,
                 )
                 self._tab_stack.addWidget(self._optimizer_panel)
+            elif t["id"] == "checks":
+                checks = ChecksPanel()
+                self._checks_panel = checks
+                self._tab_stack.addWidget(checks)
+            elif t["id"] == "wear":
+                wear = WearPanel()
+                self._wear_panel = wear
+                self._tab_stack.addWidget(wear)
+            elif t["id"] == "structural":
+                structural = StructuralPanel()
+                self._structural_panel = structural
+                self._tab_stack.addWidget(structural)
+            elif t["id"] == "materials":
+                materials = MaterialsPanel()
+                self._materials_panel = materials
+                self._tab_stack.addWidget(materials)
             else:
                 self._tab_stack.addWidget(Placeholder(
                     t["label"], f"CalcPage › {t['label']} — next session",
@@ -253,6 +276,20 @@ class ConveyorWorkspace(ModuleWorkspace):
                 self._results_panel.set_data(results, multi)
 
         self._status_panel.set_data(results, payload)
+
+        # Detail tabs read the same design result. Stash D so the structural
+        # panel can compute the .tsx's recommended-bearing string, which is a
+        # function of the input diameter rather than any engine output.
+        results["_D_display"] = payload.get("D")
+        results["_sallow_display"] = payload.get("sallow", 40)
+        if self._checks_panel is not None:
+            self._checks_panel.set_data(results)
+        if self._wear_panel is not None:
+            self._wear_panel.set_data(results)
+        if self._structural_panel is not None:
+            self._structural_panel.set_data(results)
+        if self._materials_panel is not None:
+            self._materials_panel.set_data(results)
 
         # Shaft deflection profile needs the main design result; cheap to
         # feed every calculate whether or not that tab is visible.

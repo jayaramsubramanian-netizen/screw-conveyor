@@ -114,7 +114,7 @@ def mat_recs(mat: dict) -> dict:
     }
 
 
-def a_fact(ang_deg: float, mat: dict = None, continuous: bool = False) -> float:
+def a_fact(ang_deg: float, mat: Optional[dict] = None, continuous: bool = False) -> float:
     b = abs(ang_deg)
     if continuous:
         # Exponential decay: f = exp(-k * ang)
@@ -525,8 +525,13 @@ def calc_engine(inp: dict, mat: dict, brg: dict, gbx: dict, lam_factor: float = 
     hgr_auto = hanger_count(L, D, mat.get("abr", "Medium"), ang)
     # User override: hangers=0 means auto, any positive integer = explicit count
     user_hangers_raw = inp.get("hangers")
-    user_override = (user_hangers_raw is not None and int(user_hangers_raw) > 0)
-    hgr_count = int(user_hangers_raw) if user_override else hgr_auto["count"]
+    # Coerce once, up front. The previous form stored the None check in a
+    # bool (`user_override`) and then called int(user_hangers_raw) on the
+    # next line — narrowing does not survive that hop, so the int() call was
+    # typed as possibly-None. Same runtime behaviour, checkable statically.
+    user_hangers = int(user_hangers_raw) if user_hangers_raw is not None else 0
+    user_override = user_hangers > 0
+    hgr_count = user_hangers if user_override else hgr_auto["count"]
     # Recompute span from actual count: N hangers = N+1 spans
     hgr_span_actual = L / (hgr_count + 1) if hgr_count > 0 else L
     hgr = {
@@ -834,3 +839,155 @@ def calc_engine(inp: dict, mat: dict, brg: dict, gbx: dict, lam_factor: float = 
         },
     })
     return result
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STRUCTURAL — trough plate, flange, bolt, weld, hanger sizing
+# ═══════════════════════════════════════════════════════════════════════════
+# Ported verbatim from calcStructural() in CalcPage.tsx (which itself matches
+# the HTML prototype exactly). This is real stress physics — Barlow pressure
+# containment, beam bending between hangers, EN 1092-1 flange, ISO 898-1 bolt,
+# AWS D1.1 weld — that previously ran client-side in the React app, in
+# violation of "engine.py is the single source of truth for all calculations."
+# STRUCTURAL_REVIEW_NOTE.md (option 1) called for exactly this backend port.
+#
+# The arithmetic is line-for-line identical to the .tsx. Any deviation would
+# be a bug: the HTML prototype is the authoritative spec for the equations.
+# Values already available from calc_engine() (screw_mass, hanger span) are
+# recomputed here rather than shared, because calc_structural derives them
+# under its own worst-case assumptions (fill=0.35 default, temp derating) and
+# coupling the two would make one silently drift when the other changed.
+
+_PLATE_SERIES_MM = [3, 4, 5, 6, 8, 10, 12, 14, 16, 20, 25, 30]
+
+# ISO 898-1 tensile stress areas (m²), keyed by nominal bolt diameter (mm).
+_BOLT_SERIES = [
+    {"d": 8,  "A": 36.6e-6},
+    {"d": 10, "A": 58.0e-6},
+    {"d": 12, "A": 84.3e-6},
+    {"d": 16, "A": 157e-6},
+    {"d": 20, "A": 245e-6},
+    {"d": 24, "A": 353e-6},
+]
+
+
+def _first_plate_ge(value: float, fallback: float = 30) -> float:
+    """First standard plate thickness ≥ value; .tsx `PLATE.find(...) || 30`."""
+    for t in _PLATE_SERIES_MM:
+        if t >= value:
+            return t
+    return fallback
+
+
+def calc_structural(
+    D_m: float,
+    L_m: float,
+    rho: float,
+    ang: float,
+    fill: float = 0.35,
+    abr: str = "Medium",
+    temp: float = 20,
+) -> dict:
+    """
+    Preliminary structural sizing for a U-trough screw conveyor.
+
+    Direct port of calcStructural(D_m, L_m, rho, ang, fill, abr, temp) in
+    CalcPage.tsx. Signature, intermediate variable names, and the returned
+    keys are all preserved so the frontend port is a pure display of this
+    result with no recomputation.
+
+    Returns plate/cover thickness, flange geometry, bolt spec + adequacy,
+    weld throat, hanger span, support reactions, and component masses.
+    """
+    rk = rho * 1000.0
+    g = 9.81
+
+    # Allowable stress derates with temperature (MPa → Pa).
+    sa = 100e6 if temp > 200 else 120e6 if temp > 150 else 160e6
+    sw = sa * 0.7          # weld allowable
+    sb = 144e6             # bolt allowable (gr 8.8)
+
+    # Janssen-style fill depth and hydrostatic + surge pressure.
+    fd = D_m * fill * 1.3
+    Ph = rk * g * fd
+    Pd = Ph * 1.3
+
+    # Hanger span capped by diameter band.
+    hs = min(L_m, 3.6 if D_m >= 0.45 else 3.0 if D_m >= 0.3 else 2.4)
+
+    # Distributed weight: material + trough self-weight.
+    wm = rk * (math.pi / 4) * D_m * D_m * fill * g
+    wt = 22 * D_m * g * (1 + 0.1 * temp / 200)
+    ww = wm + wt
+
+    # Simply-supported bending moment between hangers.
+    Mm = ww * hs * hs / 8.0
+    tb = math.sqrt(4 * Mm / (math.pi * D_m * sa))
+
+    Dm = D_m * 1000.0                       # diameter in mm
+    tcm = (3 if Dm < 150 else 4 if Dm < 250 else 5 if Dm < 400
+           else 6 if Dm < 600 else 8 if Dm < 900 else 10)   # CEMA code minimum
+    wa2 = 4 if abr in ("High", "Very High") else 3 if abr == "Medium" else 2
+
+    # Trough plate: max of beam bending and Barlow pressure, + wear allowance,
+    # floored at code minimum, snapped up to a standard plate.
+    tc = max(tb, Pd * D_m / (2 * sa)) * 1000.0
+    tp = _first_plate_ge(max(math.ceil(tc + wa2), tcm))
+
+    # Cover plate: flat-plate bending under a point maintenance load.
+    Pc = 1200 * g / (0.06 * D_m) + 2000
+    tcc = math.sqrt(3 * Pc * D_m * D_m / (16 * sa)) * 1000.0
+    tc2 = _first_plate_ge(max(tcc + 2, tcm + 1), fallback=12)
+
+    # Flange bolt circle and bolt count (multiple of 4, ~160 mm pitch).
+    PCD = D_m + 2 * (tp / 1000.0) + 0.05
+    nb = math.ceil(
+        math.ceil(max(4, 4 * math.ceil(math.pi * PCD * 1000 / 160)) / 4) * 4
+    )
+    bp = math.pi * PCD * 1000 / nb
+
+    # End-flange separating force → per-bolt load → required area → bolt.
+    Fp = Pd * (math.pi / 4) * D_m * D_m + 2 * math.pi * (D_m / 2) * 0.015 * 6895
+    Fe = Fp / nb
+    Ab = Fe / sb
+    dr = math.sqrt(4 * Ab / math.pi) * 1000.0
+    bs = next((b for b in _BOLT_SERIES if b["d"] >= max(dr, 8)),
+              _BOLT_SERIES[-1])
+    sb_act = Fe / bs["A"] / 1e6
+
+    # Support count and per-support reaction.
+    ns = max(2, math.ceil(L_m / hs) + 1)
+    Rs = ww * L_m / ns
+
+    # Fillet weld throat (AWS D1.1), min 3 mm.
+    wh = max(3, math.ceil(Pd * D_m / (2 * sw * 0.707) * 1000))
+
+    # Component masses.
+    sm = round(7850 * math.pi * D_m * 0.006 * L_m
+               + (math.pi / 4 * D_m * D_m * L_m * fill * rk))
+    tm = round(7850 * math.pi * D_m * (tp / 1000.0) * L_m)
+
+    return {
+        "w_total":      round(ww / 1000.0, 3),
+        "M_max":        round(Mm / 1000.0, 3),
+        "hanger_span":  round(hs, 2),
+        "t_plate":      tp,
+        "t_cover":      tc2,
+        "bolt_size":    f"M{bs['d']} gr.8.8",
+        "n_bolts":      nb,
+        "bolt_pitch":   round(bp),
+        "bolt_ok":      sb_act <= 144,
+        "bolt_cap":     round(bs["A"] * 144e6 * nb / 1000.0, 1),
+        "pressure_load": round(Fe / 1000.0, 1),
+        "weld_size":    wh,
+        "flange_t":     _first_plate_ge(max(tp, 11), fallback=14),
+        "flange_w":     round(Dm * 0.12 + 20),
+        "cover_bp":     round(min(150, Dm / 3)),
+        "n_supports":   ns,
+        "R_kN":         round(Rs / 1000.0, 1),
+        "screw_mass":   sm,
+        "trough_mass":  tm,
+        "end_react":    round((ww * L_m / 2) / 1000.0, 1),
+        "sigma_allow":  round(sa / 1e6),
+        "key_b":        28 if Dm >= 100 else 25 if Dm >= 85 else 20 if Dm >= 70 else 16,
+    }
