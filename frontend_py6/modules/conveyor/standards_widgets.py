@@ -119,9 +119,10 @@ class StdTabsWidget(QWidget):
             "Pm = Q_design × L × λ_eff × Ks / 367."
         )
         explain.setStyleSheet(
-            f"background-color: rgba(74,158,255,.05); "
+            f"QWidget {{" f"background-color: rgba(74,158,255,.05); "
             f"border: 1px solid rgba(74,158,255,.15); border-radius: 7px; "
             f"padding: 8px 12px; color: rgba(221,234,246,.75); font-size: 9.5px;"
+         f"}}"
         )
         explain.setWordWrap(True)
         outer.addWidget(explain)
@@ -129,8 +130,9 @@ class StdTabsWidget(QWidget):
         # Active standard info box
         self._info_box = QFrame()
         self._info_box.setStyleSheet(
-            f"background-color: rgba(232,160,0,.06); "
+            f"QWidget {{" f"background-color: rgba(232,160,0,.06); "
             f"border: 1px solid rgba(232,160,0,.2); border-radius: 7px;"
+         f"}}"
         )
         info_lay = QVBoxLayout(self._info_box)
         info_lay.setContentsMargins(10, 8, 10, 8)
@@ -267,7 +269,7 @@ class StdCompTable(QFrame):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; border-radius: 8px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; border-radius: 8px;" f"}}"
         )
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 10)
@@ -276,9 +278,9 @@ class StdCompTable(QFrame):
         hdr = QWidget()
         hdr.setFixedHeight(34)
         hdr.setStyleSheet(
-            f"background-color: {PANEL2}; "
+            f"QFrame {{" f"background-color: {PANEL2}; "
             f"border-top-left-radius: 8px; border-top-right-radius: 8px; "
-            f"border-bottom: 1px solid {BORDER};"
+            f"border-bottom: 1px solid {BORDER};" f"}}"
         )
         hdr_lay = QHBoxLayout(hdr)
         hdr_lay.setContentsMargins(12, 0, 12, 0)
@@ -317,19 +319,19 @@ class StdCompTable(QFrame):
         for row_idx, (label, _extract, _ok) in enumerate(_ROW_DEFS, start=1):
             label_lbl = QLabel(label)
             label_lbl.setStyleSheet(
-                f"color: {TEXT3}; font-size: 9.5px; padding: 3px 8px; "
-                f"border-bottom: 1px solid rgba(28,48,72,.4);"
-            )
+            f"QFrame {{" f"color: {TEXT3}; font-size: 9.5px; padding: 3px 8px; "
+                f"border-bottom: 1px solid rgba(28,48,72,.4);" f"}}"
+        )
             self._grid.addWidget(label_lbl, row_idx, 0)
 
             row_cells = []
             for c in range(1, 4):
                 cell = QLabel("—")
                 cell.setStyleSheet(
-                    f"color: {TEXT}; font-size: 10.5px; font-weight: 700; "
+            f"QFrame {{" f"color: {TEXT}; font-size: 10.5px; font-weight: 700; "
                     f"font-family: 'Consolas', monospace; padding: 3px 8px; "
-                    f"border-bottom: 1px solid rgba(28,48,72,.4);"
-                )
+                    f"border-bottom: 1px solid rgba(28,48,72,.4);" f"}}"
+        )
                 self._grid.addWidget(cell, row_idx, c)
                 row_cells.append(cell)
             self._cells.append(row_cells)
@@ -360,7 +362,7 @@ class StdCompTable(QFrame):
                 else:
                     color = TEXT
                 cell.setStyleSheet(
-                    f"color: {color}; font-size: 10.5px; font-weight: 700; "
+            f"QFrame {{" f"color: {color}; font-size: 10.5px; font-weight: 700; "
                     f"font-family: 'Consolas', monospace; padding: 3px 8px; "
-                    f"border-bottom: 1px solid rgba(28,48,72,.4);"
-                )
+                    f"border-bottom: 1px solid rgba(28,48,72,.4);" f"}}"
+        )

@@ -33,10 +33,12 @@ Layout
         │   ├── mixer/workspace.py  ✅ done
         │   ├── dryer/  cooler/  reactor/       ← each also needs axial_chart
         │   └── separator/  compactor/
-        ├── feeder/             Live Bottom Feeder / Doser (VL series)
         ├── family/             Family Designer
         ├── database/           Material / equipment database browser
         └── manual/             Reference manual viewer
+
+    All eleven modules are now real implementations; modules/stubs.py has
+    been deleted.
 
 Import rule (one-way, and the reason this layout exists)
 ────────────────────────────────────────────────────────

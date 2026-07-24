@@ -599,18 +599,42 @@ class InputSidebarPanel(QWidget):
                 self._gbx.setCurrentIndex(idx)
 
     def set_payload(self, payload: dict) -> None:
-        """Programmatically set all fields from a saved payload dict."""
+        """
+        Programmatically set all fields from a saved payload dict.
+
+        Partial update: only keys present AND non-None are applied, so a
+        caller can send a handful of overrides and leave everything else
+        alone.
+
+        The None check matters as much as the key check. `if key in payload`
+        alone lets a stored null through to float()/int(), which raises
+        TypeError — e.g. a captured equipment snapshot whose optional
+        bearing load was never set would crash on restore. A None means
+        "not specified", so the field keeps its current value.
+        """
         def _set_dspin(w: QDoubleSpinBox, key: str) -> None:
-            if key in payload:
-                w.blockSignals(True)
-                w.setValue(float(payload[key]))
-                w.blockSignals(False)
+            v = payload.get(key)
+            if v is None:
+                return
+            try:
+                fv = float(v)
+            except (TypeError, ValueError):
+                return
+            w.blockSignals(True)
+            w.setValue(fv)
+            w.blockSignals(False)
 
         def _set_spin(w: QSpinBox, key: str) -> None:
-            if key in payload:
-                w.blockSignals(True)
-                w.setValue(int(payload[key]))
-                w.blockSignals(False)
+            v = payload.get(key)
+            if v is None:
+                return
+            try:
+                iv = int(float(v))
+            except (TypeError, ValueError):
+                return
+            w.blockSignals(True)
+            w.setValue(iv)
+            w.blockSignals(False)
 
         def _set_combo(w: QComboBox, key: str) -> None:
             val = payload.get(key)

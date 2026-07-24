@@ -240,7 +240,7 @@ class Divider(QWidget):
         tick = QFrame()
         tick.setFixedSize(12, 2)
         tick.setStyleSheet(
-            f"background-color: {PROCESS_ACCENT}; border-radius: 1px;"
+            f"QWidget {{" f"background-color: {PROCESS_ACCENT}; border-radius: 1px;" f"}}"
         )
         layout.addWidget(tick, 0, Qt.AlignmentFlag.AlignVCenter)
 
@@ -274,8 +274,8 @@ class KpiCard(QFrame):
     ):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; "
-            f"border-radius: 8px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; "
+            f"border-radius: 8px;" f"}}"
         )
         layout = QVBoxLayout(self)
         layout.setContentsMargins(14, 10, 14, 10)
@@ -283,18 +283,20 @@ class KpiCard(QFrame):
 
         self._label = QLabel(label.upper())
         self._label.setStyleSheet(
-            f"color: {MUTED}; font-size: 8.5px; font-weight: 700; "
-            f"letter-spacing: 0.10em; border: none;"
+            f"QFrame {{" f"color: {MUTED}; font-size: 8.5px; font-weight: 700; "
+            f"letter-spacing: 0.10em; border: none;" f"}}"
         )
         layout.addWidget(self._label)
 
         self._value = QLabel()
-        self._value.setStyleSheet("border: none;")
+        self._value.setStyleSheet(
+            f"QFrame {{" "border: none;" f"}}"
+        )
         layout.addWidget(self._value)
 
         self._sub = QLabel()
         self._sub.setStyleSheet(
-            f"color: {TEXT3}; font-size: 9px; border: none;"
+            f"QFrame {{" f"color: {TEXT3}; font-size: 9px; border: none;" f"}}"
         )
         self._sub.setVisible(False)
         layout.addWidget(self._sub)
@@ -339,21 +341,25 @@ class ResultRow(QWidget):
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
-        self.setStyleSheet(f"border-bottom: 1px solid {BORDER};")
+        self.setStyleSheet(
+            f"QWidget {{" f"border-bottom: 1px solid {BORDER};" f"}}"
+        )
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 3, 0, 3)
         layout.setSpacing(8)
 
         self._key = QLabel(label)
         self._key.setStyleSheet(
-            f"color: {MUTED}; font-size: 11px; border: none;"
+            f"QWidget {{" f"color: {MUTED}; font-size: 11px; border: none;" f"}}"
         )
         layout.addWidget(self._key)
         layout.addStretch()
 
         self._val = QLabel()
         self._val.setTextFormat(Qt.TextFormat.RichText)
-        self._val.setStyleSheet("border: none;")
+        self._val.setStyleSheet(
+            f"QWidget {{" "border: none;" f"}}"
+        )
         self._val.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self._val)
 
@@ -386,8 +392,8 @@ class Card(QFrame):
     def __init__(self, title: str, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; "
-            f"border-radius: 8px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; "
+            f"border-radius: 8px;" f"}}"
         )
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(12, 12, 12, 12)
@@ -395,9 +401,9 @@ class Card(QFrame):
 
         head = QLabel(title.upper())
         head.setStyleSheet(
-            f"color: {PROCESS_ACCENT}; font-size: 9px; font-weight: 700; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 9px; font-weight: 700; "
             f"letter-spacing: 0.10em; border: none; "
-            f"font-family: 'Barlow Condensed', sans-serif;"
+            f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
         self._layout.addWidget(head)
         self._layout.addSpacing(8)
@@ -466,10 +472,10 @@ class WarningsPanel(QWidget):
                 lbl = QLabel(f"{prefix}{msg}")
                 lbl.setWordWrap(True)
                 lbl.setStyleSheet(
-                    f"background-color: {bg}; border: 1px solid {colour}; "
+            f"QWidget {{" f"background-color: {bg}; border: 1px solid {colour}; "
                     f"border-radius: 6px; padding: 6px 10px; "
-                    f"font-size: 10px; color: {colour};"
-                )
+                    f"font-size: 10px; color: {colour};" f"}}"
+        )
                 self._layout.addWidget(lbl)
                 any_shown = True
 
@@ -520,15 +526,15 @@ class ErrorBanner(QFrame):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: rgba(224,82,82,0.08); "
-            f"border: 1px solid {DANGER}; border-radius: 6px;"
+            f"QFrame {{" f"background-color: rgba(224,82,82,0.08); "
+            f"border: 1px solid {DANGER}; border-radius: 6px;" f"}}"
         )
         layout = QHBoxLayout(self)
         layout.setContentsMargins(14, 8, 14, 8)
         self._lbl = QLabel()
         self._lbl.setWordWrap(True)
         self._lbl.setStyleSheet(
-            f"color: {DANGER}; font-size: 11px; border: none;"
+            f"QFrame {{" f"color: {DANGER}; font-size: 11px; border: none;" f"}}"
         )
         layout.addWidget(self._lbl)
         self.setVisible(False)
@@ -654,8 +660,8 @@ class ModuleShell(ModuleWorkspace):
         # ── input rail ────────────────────────────────────────────────────
         rail = QWidget()
         rail.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; "
-            f"border-radius: 8px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; "
+            f"border-radius: 8px;" f"}}"
         )
         self._rail_layout = QVBoxLayout(rail)
         self._rail_layout.setContentsMargins(12, 12, 12, 12)
@@ -664,17 +670,19 @@ class ModuleShell(ModuleWorkspace):
         head = QVBoxLayout()
         head.setSpacing(3)
         icon_lbl = QLabel(icon)
-        icon_lbl.setStyleSheet("font-size: 20px; border: none;")
+        icon_lbl.setStyleSheet(
+            f"QFrame {{" "font-size: 20px; border: none;" f"}}"
+        )
         title_lbl = QLabel(title.upper())
         title_lbl.setStyleSheet(
-            f"color: {PROCESS_ACCENT}; font-size: 12px; font-weight: 800; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 12px; font-weight: 800; "
             f"letter-spacing: 0.08em; border: none; "
-            f"font-family: 'Barlow Condensed', sans-serif;"
+            f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
         sub_lbl = QLabel(subtitle)
         sub_lbl.setWordWrap(True)
         sub_lbl.setStyleSheet(
-            f"color: {MUTED}; font-size: 9px; border: none;"
+            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
         )
         head.addWidget(icon_lbl)
         head.addWidget(title_lbl)

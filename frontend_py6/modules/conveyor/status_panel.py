@@ -65,10 +65,18 @@ class _HealthTile(QFrame):
     background rgba(0,0,0,.25), 1px border tinted to the status colour.
     """
 
+    #: Scoped by objectName, NOT by type. A `QFrame{...}` selector also
+    #: matches every QLabel inside this tile, because QLabel inherits
+    #: QFrame — which draws a border around each label and produces the
+    #: "box in box" look. `#healthTile` matches this widget alone.
+    _OBJ = "healthTile"
+
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
+        self.setObjectName(self._OBJ)
         self.setStyleSheet(
-            f"background-color: rgba(0,0,0,.25); border-radius: 7px;"
+            f"#{self._OBJ} {{ background-color: rgba(0,0,0,.25); "
+            f"border-radius: 7px; }}"
         )
         lay = QVBoxLayout(self)
         lay.setContentsMargins(9, 7, 9, 7)
@@ -106,8 +114,8 @@ class _HealthTile(QFrame):
         )
         border_color = color if ok is not None else BORDER
         self.setStyleSheet(
-            f"background-color: rgba(0,0,0,.25); border-radius: 7px; "
-            f"border: 1px solid {border_color}44;"
+            f"#{self._OBJ} {{ background-color: rgba(0,0,0,.25); "
+            f"border-radius: 7px; border: 1px solid {border_color}44; }}"
         )
 
 
@@ -153,9 +161,9 @@ class StatusPanel(QWidget):
 
         self._status_badge = QLabel("—")
         self._status_badge.setStyleSheet(
-            f"color: {TEXT3}; font-size: 9.5px; font-weight: 700; "
+            f"QWidget {{" f"color: {TEXT3}; font-size: 9.5px; font-weight: 700; "
             f"background: rgba(0,0,0,.3); border-radius: 10px; "
-            f"padding: 3px 10px; border: 1px solid {BORDER};"
+            f"padding: 3px 10px; border: 1px solid {BORDER};" f"}}"
         )
         hl.addWidget(self._status_badge)
 
@@ -285,17 +293,17 @@ class StatusPanel(QWidget):
         if n_fail > 0:
             self._status_badge.setText(f"⛔ {n_fail} Critical")
             self._status_badge.setStyleSheet(
-                f"color: {DANGER}; font-size: 9.5px; font-weight: 700; "
+            f"QWidget {{" f"color: {DANGER}; font-size: 9.5px; font-weight: 700; "
                 f"background: rgba(0,0,0,.3); border-radius: 10px; "
-                f"padding: 3px 10px; border: 1px solid {DANGER};"
-            )
+                f"padding: 3px 10px; border: 1px solid {DANGER};" f"}}"
+        )
         else:
             self._status_badge.setText("✅ Design OK")
             self._status_badge.setStyleSheet(
-                f"color: {SUCCESS}; font-size: 9.5px; font-weight: 700; "
+            f"QWidget {{" f"color: {SUCCESS}; font-size: 9.5px; font-weight: 700; "
                 f"background: rgba(0,0,0,.3); border-radius: 10px; "
-                f"padding: 3px 10px; border: 1px solid {SUCCESS};"
-            )
+                f"padding: 3px 10px; border: 1px solid {SUCCESS};" f"}}"
+        )
 
         for tile, (label, value, req, ok) in zip(self._tiles, checks):
             tile.set_check(label, value, req, ok)

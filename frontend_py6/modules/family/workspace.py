@@ -202,24 +202,28 @@ class FamilyWorkspace(ModuleWorkspace):
     def _build_rail(self) -> QWidget:
         rail = QWidget()
         rail.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; "
-            f"border-radius: 8px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; "
+            f"border-radius: 8px;" f"}}"
         )
         layout = QVBoxLayout(rail)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(0)
 
         icon = QLabel("📊")
-        icon.setStyleSheet("font-size: 20px; border: none;")
+        icon.setStyleSheet(
+            f"QFrame {{" "font-size: 20px; border: none;" f"}}"
+        )
         title = QLabel("FAMILY DESIGNER")
         title.setStyleSheet(
-            f"color: {PROCESS_ACCENT}; font-size: 12px; font-weight: 800; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 12px; font-weight: 800; "
             f"letter-spacing: 0.08em; border: none; "
-            f"font-family: 'Barlow Condensed', sans-serif;"
+            f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
         sub = QLabel("D × L × N sweep · capacity, energy, cost, life")
         sub.setWordWrap(True)
-        sub.setStyleSheet(f"color: {MUTED}; font-size: 9px; border: none;")
+        sub.setStyleSheet(
+            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
+        )
         for w in (icon, title, sub):
             layout.addWidget(w)
         layout.addSpacing(10)
@@ -288,7 +292,7 @@ class FamilyWorkspace(ModuleWorkspace):
 
         self._summary = QLabel("No family generated yet.")
         self._summary.setStyleSheet(
-            f"color: {MUTED}; font-size: 10px; border: none;"
+            f"QFrame {{" f"color: {MUTED}; font-size: 10px; border: none;" f"}}"
         )
         layout.addWidget(self._summary)
 

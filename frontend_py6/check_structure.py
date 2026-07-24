@@ -25,7 +25,6 @@ REQUIRED = [
     ("core/api_client.py",                   "core: api_client"),
     ("core/widgets.py",                      "core: widgets"),
     ("modules/base.py",                      "contract: ModuleWorkspace"),
-    ("modules/stubs.py",                     "stub workspaces"),
     ("modules/conveyor/workspace.py",        "conveyor workspace"),
     ("modules/conveyor/sidebar.py",          "conveyor sidebar"),
     ("modules/process/common.py",            "process shell"),
@@ -39,6 +38,9 @@ REQUIRED = [
     ("modules/process/feeder/workspace.py",  "feeder"),
     ("modules/process/feeder/calibration_chart.py", "feeder calib chart"),
     ("modules/family/workspace.py",          "family designer"),
+    ("modules/database/workspace.py",        "database browser"),
+    ("modules/manual/workspace.py",          "manual viewer"),
+    ("modules/conveyor/detail_panels.py",    "checks/wear/structural/materials"),
     ("app/chrome.py",                        "chrome"),
     ("app/registry.py",                      "registry"),
     ("app/shell.py",                         "shell host"),
@@ -48,6 +50,7 @@ REQUIRED = [
 # (path, why it must go)
 LEFTOVERS = [
     ("main.py",                    "superseded by app/main.py"),
+    ("modules/stubs.py",           "all modules ported — no stubs remain"),
     ("components",                 "superseded by app/ and modules/"),
     ("theme.py",                   "moved to core/theme.py"),
     ("api_client.py",              "moved to core/api_client.py"),
@@ -110,6 +113,10 @@ def main() -> int:
          "axial_panel missing pyqtgraph type-ignore fixes"),
         ("modules/process/common.py",  "def set_options",
          "process common missing Field.set_options / WarningsPanel"),
+        ("app/registry.py",            "from modules.database import",
+         "registry still importing Database from stubs"),
+        ("modules/conveyor/workspace.py", "MaterialsPanel",
+         "conveyor missing the four detail-tab panels"),
     ]
     stale_content = []
     for rel, marker, why in markers:

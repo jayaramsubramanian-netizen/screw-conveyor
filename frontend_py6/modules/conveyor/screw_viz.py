@@ -89,7 +89,9 @@ class _Canvas(QWidget):
         self._draw_h = 280.0
         self.setMinimumHeight(260)
         self.setCursor(Qt.CursorShape.OpenHandCursor)
-        self.setStyleSheet(f"background-color: #081321; border-radius: 0px;")
+        self.setStyleSheet(
+            f"QWidget {{" f"background-color: #081321; border-radius: 0px;" f"}}"
+        )
 
         self.pan_x = 0.0
         self.pan_y = 0.0
@@ -207,7 +209,7 @@ class ScrewViz2D(QWidget):
 
     def _build_ui(self) -> None:
         self.setStyleSheet(
-            f"background-color: #081321; border: 1px solid {BORDER}; border-radius: 10px;"
+            f"QWidget {{" f"background-color: #081321; border: 1px solid {BORDER}; border-radius: 10px;" f"}}"
         )
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -217,9 +219,9 @@ class ScrewViz2D(QWidget):
         header = QFrame()
         header.setFixedHeight(38)
         header.setStyleSheet(
-            f"background-color: rgba(0,0,0,0.35); "
+            f"QWidget {{" f"background-color: rgba(0,0,0,0.35); "
             f"border-bottom: 1px solid {BORDER}; border-top-left-radius: 10px; "
-            f"border-top-right-radius: 10px;"
+            f"border-top-right-radius: 10px;" f"}}"
         )
         hl = QHBoxLayout(header)
         hl.setContentsMargins(12, 0, 12, 0)
@@ -237,9 +239,9 @@ class ScrewViz2D(QWidget):
 
         self._live_badge = QLabel("● LIVE")
         self._live_badge.setStyleSheet(
-            f"background-color: rgba(31,184,110,.15); color: {SUCCESS}; "
+            f"QWidget {{" f"background-color: rgba(31,184,110,.15); color: {SUCCESS}; "
             f"border: 1px solid {SUCCESS}; border-radius: 3px; "
-            f"padding: 0px 5px; font-size: 9px; font-weight: 700;"
+            f"padding: 0px 5px; font-size: 9px; font-weight: 700;" f"}}"
         )
         self._live_badge.setVisible(False)
         hl.addWidget(self._live_badge)
@@ -257,7 +259,7 @@ class ScrewViz2D(QWidget):
         # Speed selector
         speed_box = QFrame()
         speed_box.setStyleSheet(
-            f"background-color: #0a1929; border: 1px solid {BORDER}; border-radius: 5px;"
+            f"QWidget {{" f"background-color: #0a1929; border: 1px solid {BORDER}; border-radius: 5px;" f"}}"
         )
         speed_lay = QHBoxLayout(speed_box)
         speed_lay.setContentsMargins(0, 0, 0, 0)
@@ -311,8 +313,8 @@ class ScrewViz2D(QWidget):
         footer = QFrame()
         footer.setFixedHeight(26)
         footer.setStyleSheet(
-            f"background-color: rgba(0,0,0,0.2); border-top: 1px solid {BORDER}; "
-            f"border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;"
+            f"QWidget {{" f"background-color: rgba(0,0,0,0.2); border-top: 1px solid {BORDER}; "
+            f"border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;" f"}}"
         )
         fl = QHBoxLayout(footer)
         fl.setContentsMargins(10, 0, 10, 0)

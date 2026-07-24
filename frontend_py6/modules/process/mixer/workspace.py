@@ -92,16 +92,20 @@ class _QualityBand(QFrame):
         layout.setSpacing(10)
 
         self._m = QLabel("M = —")
-        self._m.setStyleSheet("border: none;")
+        self._m.setStyleSheet(
+            f"QFrame {{" "border: none;" f"}}"
+        )
         layout.addWidget(self._m, 0, Qt.AlignmentFlag.AlignVCenter)
 
         text_col = QVBoxLayout()
         text_col.setSpacing(1)
         self._quality = QLabel("—")
-        self._quality.setStyleSheet("border: none;")
+        self._quality.setStyleSheet(
+            f"QFrame {{" "border: none;" f"}}"
+        )
         self._detail = QLabel("")
         self._detail.setStyleSheet(
-            f"color: {MUTED}; font-size: 9px; border: none;"
+            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
         )
         text_col.addWidget(self._quality)
         text_col.addWidget(self._detail)
@@ -112,8 +116,8 @@ class _QualityBand(QFrame):
 
     def _paint(self, colour: str) -> None:
         self.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; "
-            f"border-radius: 8px; border-left: 4px solid {colour};"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; "
+            f"border-radius: 8px; border-left: 4px solid {colour};" f"}}"
         )
 
     def set_data(self, r: dict) -> None:

@@ -73,7 +73,7 @@ class AppTitleBar(QFrame):
         super().__init__(parent)
         self.setFixedHeight(48)
         self.setStyleSheet(
-            f"background-color: {PANEL}; border-bottom: 1px solid {BORDER};"
+            f"QFrame {{" f"background-color: {PANEL}; border-bottom: 1px solid {BORDER};" f"}}"
         )
         layout = QHBoxLayout(self)
         layout.setContentsMargins(14, 0, 14, 0)
@@ -84,7 +84,7 @@ class AppTitleBar(QFrame):
         icon.setFixedSize(30, 30)
         icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         icon.setStyleSheet(
-            f"background-color: {BRAND_RED}; border-radius: 7px; font-size: 15px;"
+            f"QFrame {{" f"background-color: {BRAND_RED}; border-radius: 7px; font-size: 15px;" f"}}"
         )
         layout.addWidget(icon)
 
@@ -106,7 +106,7 @@ class AppTitleBar(QFrame):
         # Module switcher
         module_bar = QFrame()
         module_bar.setStyleSheet(
-            f"background-color: {BG}; border: 1px solid {BORDER}; border-radius: 999px;"
+            f"QFrame {{" f"background-color: {BG}; border: 1px solid {BORDER}; border-radius: 999px;" f"}}"
         )
         module_layout = QHBoxLayout(module_bar)
         module_layout.setContentsMargins(3, 3, 3, 3)
@@ -117,9 +117,10 @@ class AppTitleBar(QFrame):
 
         badge = QLabel("VECTOMEC™")
         badge.setStyleSheet(
-            f"background-color: rgba(255,255,255,.18); color: white; "
+            f"QFrame {{" f"background-color: rgba(255,255,255,.18); color: white; "
             f"border-radius: 999px; padding: 2px 8px; "
             f"font-size: 8.5px; font-weight: 700;"
+         f"}}"
         )
         module_layout.addWidget(badge)
 
@@ -145,9 +146,9 @@ class AppTitleBar(QFrame):
         pdf_btn.setFixedHeight(MODULE_PILL_HEIGHT)
         pdf_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         pdf_btn.setStyleSheet(
-            f"background-color: {PANEL2}; color: {TEXT2}; "
+            f"QFrame {{" f"background-color: {PANEL2}; color: {TEXT2}; "
             f"border: 1px solid {BORDER}; border-radius: {MODULE_PILL_RADIUS}px; "
-            f"padding: 0px 14px; font-size: 11.5px; font-weight: 600;"
+            f"padding: 0px 14px; font-size: 11.5px; font-weight: 600;" f"}}"
         )
         pdf_btn.clicked.connect(self.pdf_requested)
         layout.addWidget(pdf_btn)
@@ -199,7 +200,7 @@ class PageMenuBar(QFrame):
         self._current = current_page
         self.setFixedHeight(28)
         self.setStyleSheet(
-            f"background-color: {BG}; border-bottom: 1px solid {BORDER};"
+            f"QFrame {{" f"background-color: {BG}; border-bottom: 1px solid {BORDER};" f"}}"
         )
         layout = QHBoxLayout(self)
         layout.setContentsMargins(6, 0, 6, 0)
@@ -263,7 +264,7 @@ class TopNav(QFrame):
         super().__init__(parent)
         self.setFixedHeight(76)
         self.setStyleSheet(
-            f"background-color: {PANEL}; border-bottom: 1px solid {BORDER};"
+            f"QFrame {{" f"background-color: {PANEL}; border-bottom: 1px solid {BORDER};" f"}}"
         )
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 8, 10, 8)

@@ -72,8 +72,8 @@ class AxialChart(QFrame):
         self._ref_line = None
 
         self.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; "
-            f"border-radius: 8px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; "
+            f"border-radius: 8px;" f"}}"
         )
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 10, 12, 10)
@@ -81,9 +81,9 @@ class AxialChart(QFrame):
 
         title = QLabel(f"{label} AXIAL PROFILE".upper())
         title.setStyleSheet(
-            f"color: {PROCESS_ACCENT}; font-size: 9px; font-weight: 700; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 9px; font-weight: 700; "
             f"letter-spacing: 0.10em; border: none; "
-            f"font-family: 'Barlow Condensed', sans-serif;"
+            f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
         layout.addWidget(title)
 
@@ -91,7 +91,9 @@ class AxialChart(QFrame):
         self._plot = pg.PlotWidget(background=BG)
         self._plot.setFixedHeight(160)
         self._plot.showGrid(x=True, y=True, alpha=0.20)
-        self._plot.setStyleSheet("border: none;")
+        self._plot.setStyleSheet(
+            f"QFrame {{" "border: none;" f"}}"
+        )
 
         for axis_name, text in (("bottom", "Length (m)"), ("left", unit)):
             axis = self._plot.getAxis(axis_name)

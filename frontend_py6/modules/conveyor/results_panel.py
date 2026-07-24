@@ -100,9 +100,9 @@ def _divider() -> QFrame:
 def _badge(text: str, color: str) -> QLabel:
     lbl = QLabel(text)
     lbl.setStyleSheet(
-        f"background-color: {color}22; color: {color}; "
-        f"border: 1px solid {color}55; {_BADGE_BASE}"
-    )
+            f"QFrame {{" f"background-color: {color}22; color: {color}; "
+        f"border: 1px solid {color}55; {_BADGE_BASE}" f"}}"
+        )
     lbl.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
     return lbl
 
@@ -176,9 +176,9 @@ class _Card(QFrame):
         hdr = QWidget()
         hdr.setFixedHeight(34)
         hdr.setStyleSheet(
-            f"background-color: {PANEL2}; "
+            f"QFrame {{" f"background-color: {PANEL2}; "
             f"border-top-left-radius: 8px; border-top-right-radius: 8px; "
-            f"border-bottom: 1px solid {BORDER};"
+            f"border-bottom: 1px solid {BORDER};" f"}}"
         )
         hdr_lay = QHBoxLayout(hdr)
         hdr_lay.setContentsMargins(12, 0, 12, 0)
@@ -236,8 +236,9 @@ class ModelNumberBadge(QFrame):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: rgba(232,160,0,.07); "
+            f"QFrame {{" f"background-color: rgba(232,160,0,.07); "
             f"border: 1px solid rgba(232,160,0,.3); border-radius: 8px;"
+         f"}}"
         )
         lay = QVBoxLayout(self)
         lay.setContentsMargins(14, 8, 14, 8)
@@ -326,9 +327,9 @@ class WarnsBanner(QWidget):
                 any_warn = True
                 row = QWidget()
                 row.setStyleSheet(
-                    f"background-color: {color}14; "
-                    f"border: 1px solid {color}44; border-radius: 5px;"
-                )
+            f"QWidget {{" f"background-color: {color}14; "
+                    f"border: 1px solid {color}44; border-radius: 5px;" f"}}"
+        )
                 lay = QHBoxLayout(row)
                 lay.setContentsMargins(8, 5, 8, 5)
                 lay.setSpacing(7)
@@ -525,9 +526,9 @@ class ShaftCard(_Card):
         # Update badge text/style in place (header ref kept at construction)
         self._ok_badge_ref.setText("PASS" if ok else "FAIL")
         self._ok_badge_ref.setStyleSheet(
-            f"background-color: {SUCCESS if ok else DANGER}22; "
+            f"QFrame {{" f"background-color: {SUCCESS if ok else DANGER}22; "
             f"color: {SUCCESS if ok else DANGER}; "
-            f"border: 1px solid {SUCCESS if ok else DANGER}55; {_BADGE_BASE}"
+            f"border: 1px solid {SUCCESS if ok else DANGER}55; {_BADGE_BASE}" f"}}"
         )
 
         for w in self._rows.values():
@@ -569,9 +570,9 @@ class ShaftCard(_Card):
                 f"— saves {pipe_opt['wt_save_pct']}% weight"
             )
             tip.setStyleSheet(
-                f"color: {TEAL}; font-size: 9.5px; padding: 4px 12px; "
-                f"background: {TEAL}11; border-radius: 4px;"
-            )
+            f"QFrame {{" f"color: {TEAL}; font-size: 9.5px; padding: 4px 12px; "
+                f"background: {TEAL}11; border-radius: 4px;" f"}}"
+        )
             tip.setWordWrap(True)
             self._body.addWidget(tip)
             self._rows["_pipe_tip"] = tip
@@ -596,9 +597,9 @@ class BearingCard(_Card):
 
         self._ok_badge_ref.setText("PASS" if ok else "FAIL")
         self._ok_badge_ref.setStyleSheet(
-            f"background-color: {SUCCESS if ok else DANGER}22; "
+            f"QFrame {{" f"background-color: {SUCCESS if ok else DANGER}22; "
             f"color: {SUCCESS if ok else DANGER}; "
-            f"border: 1px solid {SUCCESS if ok else DANGER}55; {_BADGE_BASE}"
+            f"border: 1px solid {SUCCESS if ok else DANGER}55; {_BADGE_BASE}" f"}}"
         )
 
         for w in self._rows.values():
@@ -657,9 +658,9 @@ class GearboxCard(_Card):
 
         self._ok_badge_ref.setText("PASS" if ok else "FAIL")
         self._ok_badge_ref.setStyleSheet(
-            f"background-color: {SUCCESS if ok else DANGER}22; "
+            f"QFrame {{" f"background-color: {SUCCESS if ok else DANGER}22; "
             f"color: {SUCCESS if ok else DANGER}; "
-            f"border: 1px solid {SUCCESS if ok else DANGER}55; {_BADGE_BASE}"
+            f"border: 1px solid {SUCCESS if ok else DANGER}55; {_BADGE_BASE}" f"}}"
         )
 
         for w in self._rows.values():
@@ -821,9 +822,9 @@ class MaterialRecsCard(QFrame):
         hdr = QWidget()
         hdr.setFixedHeight(34)
         hdr.setStyleSheet(
-            f"background-color: {PANEL2}; "
+            f"QFrame {{" f"background-color: {PANEL2}; "
             f"border-top-left-radius: 8px; border-top-right-radius: 8px; "
-            f"border-bottom: 1px solid {BORDER};"
+            f"border-bottom: 1px solid {BORDER};" f"}}"
         )
         hdr_lay = QHBoxLayout(hdr)
         hdr_lay.setContentsMargins(12, 0, 12, 0)
@@ -859,8 +860,9 @@ class MaterialRecsCard(QFrame):
 
         self._notes_box = QFrame()
         self._notes_box.setStyleSheet(
-            f"background-color: rgba(74,158,255,.06); "
+            f"QFrame {{" f"background-color: rgba(74,158,255,.06); "
             f"border: 1px solid rgba(74,158,255,.2); border-radius: 6px;"
+         f"}}"
         )
         notes_lay = QVBoxLayout(self._notes_box)
         notes_lay.setContentsMargins(10, 7, 10, 7)
@@ -878,7 +880,9 @@ class MaterialRecsCard(QFrame):
 
     def _build_section(self, icon: str, label: str, color: str) -> tuple[QFrame, QVBoxLayout]:
         frame = QFrame()
-        frame.setStyleSheet("background-color: rgba(0,0,0,.2); border-radius: 7px;")
+        frame.setStyleSheet(
+            f"QFrame {{" "background-color: rgba(0,0,0,.2); border-radius: 7px;" f"}}"
+        )
         lay = QVBoxLayout(frame)
         lay.setContentsMargins(11, 9, 11, 9)
         lay.setSpacing(3)
@@ -918,9 +922,9 @@ class MaterialRecsCard(QFrame):
             for text in items:
                 lbl = QLabel(f"•  {text}")
                 lbl.setStyleSheet(
-                    f"color: #b0c8e0; font-size: 9.5px; "
-                    f"border-left: 2px solid {color}55; padding-left: 7px;"
-                )
+            f"QFrame {{" f"color: #b0c8e0; font-size: 9.5px; "
+                    f"border-left: 2px solid {color}55; padding-left: 7px;" f"}}"
+        )
                 lbl.setWordWrap(True)
                 items_layout.addWidget(lbl)
 
@@ -963,8 +967,8 @@ class FlowRegimeBar(QFrame):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: rgba(16,30,48,.5); border: 1px solid {BORDER}; "
-            f"border-radius: 8px;"
+            f"QFrame {{" f"background-color: rgba(16,30,48,.5); border: 1px solid {BORDER}; "
+            f"border-radius: 8px;" f"}}"
         )
         lay = QHBoxLayout(self)
         lay.setContentsMargins(14, 8, 14, 8)
@@ -986,8 +990,8 @@ class FlowRegimeBar(QFrame):
 
         self._class_badge = QLabel("")
         self._class_badge.setStyleSheet(
-            f"background-color: #1c3048; color: {MUTED}; "
-            f"padding: 2px 8px; border-radius: 3px; font-size: 9px;"
+            f"QFrame {{" f"background-color: #1c3048; color: {MUTED}; "
+            f"padding: 2px 8px; border-radius: 3px; font-size: 9px;" f"}}"
         )
         lay.addWidget(self._class_badge)
 
@@ -1001,7 +1005,9 @@ class FlowRegimeBar(QFrame):
         is_normal = "Normal" in regime_name
         color = SUCCESS if is_normal else WARNING
 
-        self._dot.setStyleSheet(f"background-color: {color}; border-radius: 3px;")
+        self._dot.setStyleSheet(
+            f"QFrame {{" f"background-color: {color}; border-radius: 3px;" f"}}"
+        )
         self._name_lbl.setText(regime_name)
         self._name_lbl.setStyleSheet(f"color: {color}; font-size: 11px; font-weight: 700;")
 

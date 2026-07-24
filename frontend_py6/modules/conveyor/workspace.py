@@ -63,6 +63,7 @@ from .results_panel import ResultsPanel
 from .axial_panel import AxialProfilePanel
 from .status_panel import StatusPanel
 from .optimizer_panel import AutoOptimizerPanel
+from .equipment_tree import EquipmentTree
 from .detail_panels import (
     ChecksPanel, WearPanel, StructuralPanel, MaterialsPanel,
 )
@@ -120,10 +121,11 @@ class ConveyorWorkspace(ModuleWorkspace):
         c1 = QVBoxLayout(self._col1)
         c1.setContentsMargins(0, 0, 0, 0)
         c1.setSpacing(0)
-        c1.addWidget(ColHeader("Equipment", "SC-001"))
-        c1.addWidget(Placeholder(
-            "Equipment Tree", "Conveyor list + project tree — next session",
-        ))
+        c1.addWidget(ColHeader("Equipment", "Session"))
+        self._equipment = EquipmentTree()
+        self._equipment.capture_requested.connect(self._on_capture)
+        self._equipment.load_requested.connect(self._on_load_equipment)
+        c1.addWidget(self._equipment)
 
         # col2 — input sidebar
         self._col2 = QWidget()
@@ -359,6 +361,18 @@ class ConveyorWorkspace(ModuleWorkspace):
         self._c3l.replaceWidget(self._col3_header, new_header)
         self._col3_header.deleteLater()
         self._col3_header = new_header
+
+    # ── equipment tree ────────────────────────────────────────────────────
+
+    def _on_capture(self) -> None:
+        """Snapshot the sidebar's current inputs alongside the latest
+        results, so the tree entry shows the capacity it achieved."""
+        self._equipment.add_item(self._sidebar.get_payload(), self._last_results)
+
+    def _on_load_equipment(self, payload: dict) -> None:
+        """Selecting an item restores its inputs and recalculates."""
+        self._sidebar.set_payload(payload)
+        self.run_calculation(self._sidebar.get_payload())
 
     # ── cross-module exchange ─────────────────────────────────────────────
 

@@ -73,25 +73,31 @@ class _Row(QWidget):
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
-        self.setStyleSheet(f"border-bottom: 1px solid {BORDER};")
+        self.setStyleSheet(
+            f"QWidget {{" f"border-bottom: 1px solid {BORDER};" f"}}"
+        )
         row = QHBoxLayout(self)
         row.setContentsMargins(0, 4, 0, 4)
         row.setSpacing(6)
 
         key = QLabel(label)
-        key.setStyleSheet(f"color: {MUTED}; font-size: 11px; border: none;")
+        key.setStyleSheet(
+            f"QWidget {{" f"color: {MUTED}; font-size: 11px; border: none;" f"}}"
+        )
         row.addWidget(key)
         if sub:
             sub_lbl = QLabel(sub)
             sub_lbl.setStyleSheet(
-                f"color: {TEXT3}; font-size: 9px; border: none;"
-            )
+            f"QWidget {{" f"color: {TEXT3}; font-size: 9px; border: none;" f"}}"
+        )
             row.addWidget(sub_lbl)
         row.addStretch()
 
         self._val = QLabel()
         self._val.setTextFormat(Qt.TextFormat.RichText)
-        self._val.setStyleSheet("border: none;")
+        self._val.setStyleSheet(
+            f"QWidget {{" "border: none;" f"}}"
+        )
         self._val.setAlignment(Qt.AlignmentFlag.AlignRight)
         row.addWidget(self._val)
 
@@ -120,8 +126,8 @@ class _Card(QFrame):
                  parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; "
-            f"border-radius: 9px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; "
+            f"border-radius: 9px;" f"}}"
         )
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(12, 12, 12, 12)
@@ -130,19 +136,23 @@ class _Card(QFrame):
         head = QHBoxLayout()
         head.setSpacing(6)
         ic = QLabel(icon)
-        ic.setStyleSheet("border: none; font-size: 11px;")
+        ic.setStyleSheet(
+            f"QFrame {{" "border: none; font-size: 11px;" f"}}"
+        )
         head.addWidget(ic)
         lbl = QLabel(title.upper())
         lbl.setStyleSheet(
-            f"color: {ACCENT}; font-size: 9px; font-weight: 700; "
+            f"QFrame {{" f"color: {ACCENT}; font-size: 9px; font-weight: 700; "
             f"letter-spacing: 0.09em; border: none; "
-            f"font-family: 'Barlow Condensed', sans-serif;"
+            f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
         head.addWidget(lbl)
         head.addStretch()
         if badge:
             bd = QLabel(badge)
-            bd.setStyleSheet(f"color: {TEXT3}; font-size: 9px; border: none;")
+            bd.setStyleSheet(
+            f"QFrame {{" f"color: {TEXT3}; font-size: 9px; border: none;" f"}}"
+        )
             head.addWidget(bd)
         self._layout.addLayout(head)
         self._layout.addSpacing(8)
@@ -176,7 +186,7 @@ class ChecksPanel(_ScrollPanel):
         super().__init__(parent)
         self._summary = QLabel("Run a calculation to see checks.")
         self._summary.setStyleSheet(
-            f"color: {MUTED}; font-size: 11px; border: none;"
+            f"QFrame {{" f"color: {MUTED}; font-size: 11px; border: none;" f"}}"
         )
         self.body_layout.addWidget(self._summary)
 
@@ -211,33 +221,37 @@ class ChecksPanel(_ScrollPanel):
         ok = c["ok"]
         edge = SUCCESS if ok is True else DANGER if ok is False else TEXT3
         frame.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; "
-            f"border-left: 3px solid {edge}; border-radius: 6px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; "
+            f"border-left: 3px solid {edge}; border-radius: 6px;" f"}}"
         )
         row = QHBoxLayout(frame)
         row.setContentsMargins(10, 7, 10, 7)
         row.setSpacing(8)
 
         icon = QLabel("✓" if ok is True else "✗" if ok is False else "•")
-        icon.setStyleSheet(f"color: {edge}; font-weight: 700; border: none;")
+        icon.setStyleSheet(
+            f"QFrame {{" f"color: {edge}; font-weight: 700; border: none;" f"}}"
+        )
         row.addWidget(icon)
 
         name = QLabel(c["label"])
-        name.setStyleSheet(f"color: {TEXT}; font-size: 11px; border: none;")
+        name.setStyleSheet(
+            f"QFrame {{" f"color: {TEXT}; font-size: 11px; border: none;" f"}}"
+        )
         row.addWidget(name)
         row.addStretch()
 
         val = QLabel(c["val"])
         val.setStyleSheet(
-            f"color: {edge}; font-size: 11px; font-weight: 700; border: none; "
-            f"font-family: 'JetBrains Mono', monospace;"
+            f"QFrame {{" f"color: {edge}; font-size: 11px; font-weight: 700; border: none; "
+            f"font-family: 'JetBrains Mono', monospace;" f"}}"
         )
         row.addWidget(val)
         if c["req"]:
             req = QLabel(c["req"])
             req.setStyleSheet(
-                f"color: {TEXT3}; font-size: 9px; border: none;"
-            )
+            f"QFrame {{" f"color: {TEXT3}; font-size: 9px; border: none;" f"}}"
+        )
             row.addWidget(req)
         return frame
 
@@ -316,8 +330,8 @@ class WearPanel(_ScrollPanel):
         self._brg_hint = QLabel()
         self._brg_hint.setWordWrap(True)
         self._brg_hint.setStyleSheet(
-            f"background-color: rgba(217,142,0,0.08); border: 1px solid {WARNING}; "
-            f"border-radius: 4px; padding: 5px 8px; font-size: 9px; color: {WARNING};"
+            f"QFrame {{" f"background-color: rgba(217,142,0,0.08); border: 1px solid {WARNING}; "
+            f"border-radius: 4px; padding: 5px 8px; font-size: 9px; color: {WARNING};" f"}}"
         )
         self._brg_hint.setVisible(False)
         brg.add(self._brg_hint)
@@ -570,9 +584,10 @@ class MaterialsPanel(_ScrollPanel):
         self._notes = QLabel()
         self._notes.setWordWrap(True)
         self._notes.setStyleSheet(
-            f"background-color: rgba(74,158,255,0.06); "
+            f"QFrame {{" f"background-color: rgba(74,158,255,0.06); "
             f"border: 1px solid rgba(74,158,255,0.2); border-radius: 6px; "
             f"padding: 7px 10px; font-size: 10px; color: #93c5fd;"
+         f"}}"
         )
         self._notes.setVisible(False)
         self._recs_card.add(self._notes)
@@ -629,25 +644,26 @@ class MaterialsPanel(_ScrollPanel):
                 continue
             block = QFrame()
             block.setStyleSheet(
-                "background-color: rgba(0,0,0,0.2); border-radius: 7px;"
-            )
+            f"QFrame {{" "background-color: rgba(0,0,0,0.2); border-radius: 7px;"
+             f"}}"
+        )
             col = QVBoxLayout(block)
             col.setContentsMargins(11, 9, 11, 9)
             col.setSpacing(3)
             head = QLabel(f"{icon} {label}")
             head.setStyleSheet(
-                f"color: {colour}; font-size: 10px; font-weight: 700; "
-                f"border: none;"
-            )
+            f"QFrame {{" f"color: {colour}; font-size: 10px; font-weight: 700; "
+                f"border: none;" f"}}"
+        )
             col.addWidget(head)
             for text in items:
                 line = QLabel(f"• {text}")
                 line.setWordWrap(True)
                 line.setStyleSheet(
-                    f"color: #b0c8e0; font-size: 10px; "
+            f"QFrame {{" f"color: #b0c8e0; font-size: 10px; "
                     f"border: none; border-left: 2px solid {colour}55; "
-                    f"padding-left: 8px;"
-                )
+                    f"padding-left: 8px;" f"}}"
+        )
                 col.addWidget(line)
             self._recs_grid.addWidget(block, slot // 2, slot % 2)
             slot += 1

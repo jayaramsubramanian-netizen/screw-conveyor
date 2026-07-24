@@ -41,17 +41,19 @@ class _SampleTile(QFrame):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: {PANEL2}; border-radius: 5px;"
+            f"QFrame {{" f"background-color: {PANEL2}; border-radius: 5px;" f"}}"
         )
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 5, 8, 5)
         layout.setSpacing(1)
         self._n = QLabel("—")
-        self._n.setStyleSheet(f"color: {MUTED}; font-size: 9px; border: none;")
+        self._n.setStyleSheet(
+            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
+        )
         self._q = QLabel("—")
         self._q.setStyleSheet(
-            f"color: {TEXT}; font-size: 9px; font-weight: 700; border: none; "
-            f"font-family: 'JetBrains Mono', monospace;"
+            f"QFrame {{" f"color: {TEXT}; font-size: 9px; font-weight: 700; border: none; "
+            f"font-family: 'JetBrains Mono', monospace;" f"}}"
         )
         layout.addWidget(self._n)
         layout.addWidget(self._q)
@@ -71,8 +73,8 @@ class CalibrationChart(QFrame):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; "
-            f"border-radius: 8px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; "
+            f"border-radius: 8px;" f"}}"
         )
         self._target_line = None
         self._speed_line = None
@@ -83,23 +85,27 @@ class CalibrationChart(QFrame):
 
         title = QLabel("📈 N VS Q CALIBRATION CURVE")
         title.setStyleSheet(
-            f"color: {PROCESS_ACCENT}; font-size: 9px; font-weight: 700; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 9px; font-weight: 700; "
             f"letter-spacing: 0.10em; border: none; "
-            f"font-family: 'Barlow Condensed', sans-serif;"
+            f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
         layout.addWidget(title)
 
         sub = QLabel(
             "Speed (RPM) → Mass flow (t/h) — linear relationship for screw feeders"
         )
-        sub.setStyleSheet(f"color: {MUTED}; font-size: 9px; border: none;")
+        sub.setStyleSheet(
+            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
+        )
         layout.addWidget(sub)
 
         pg.setConfigOptions(antialias=True)
         self._plot = pg.PlotWidget(background=BG)
         self._plot.setFixedHeight(160)
         self._plot.showGrid(x=True, y=True, alpha=0.20)
-        self._plot.setStyleSheet("border: none;")
+        self._plot.setStyleSheet(
+            f"QFrame {{" "border: none;" f"}}"
+        )
         for name, text in (("bottom", "Speed (RPM)"), ("left", "t/h")):
             axis = self._plot.getAxis(name)
             axis.setPen(pg.mkPen(BORDER))
