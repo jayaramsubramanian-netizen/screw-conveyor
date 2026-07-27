@@ -325,7 +325,7 @@ class _TablePane(QWidget):
             QLineEdit {{
                 background-color: {BG}; border: 1px solid {BORDER};
                 border-radius: 4px; padding: 6px 10px;
-                color: {TEXT}; font-size: 11px;
+                color: {TEXT}; font-size: 16px;
             }}
             QLineEdit:focus {{ border: 1px solid {PRIMARY}; }}
         """)
@@ -338,7 +338,7 @@ class _TablePane(QWidget):
             QComboBox {{
                 background-color: {BG}; border: 1px solid {BORDER};
                 border-radius: 4px; padding: 6px 10px;
-                color: {TEXT}; font-size: 11px; min-width: 150px;
+                color: {TEXT}; font-size: 16px; min-width: 150px;
             }}
             QComboBox QAbstractItemView {{
                 background-color: {PANEL2}; color: {TEXT};
@@ -352,7 +352,7 @@ class _TablePane(QWidget):
 
         self._count = QLabel("—")
         self._count.setStyleSheet(
-            f"color: {MUTED}; font-size: 10px; padding: 0 4px;"
+            f"color: {MUTED}; font-size: 16px; padding: 0 4px;"
         )
         bar.addWidget(self._count)
         layout.addLayout(bar)
@@ -371,12 +371,12 @@ class _TablePane(QWidget):
             QTableWidget {{
                 background-color: {PANEL}; border: 1px solid {BORDER};
                 border-radius: 8px; gridline-color: {BORDER};
-                color: {TEXT}; font-size: 10px;
+                color: {TEXT}; font-size: 16px;
             }}
             QHeaderView::section {{
                 background-color: {BG}; color: #93c5fd; border: none;
                 border-bottom: 2px solid {BORDER}; padding: 5px 8px;
-                font-size: 9px; font-weight: 700;
+                font-size: 16px; font-weight: 700;
             }}
             QTableWidget::item:selected {{
                 background-color: rgba(74,158,255,0.18); color: {TEXT};
@@ -408,7 +408,7 @@ class _TablePane(QWidget):
         self._rows = []
         self._table.setRowCount(0)
         self._count.setText(f"⚠ {msg}")
-        self._count.setStyleSheet(f"color: {DANGER}; font-size: 10px;")
+        self._count.setStyleSheet(f"color: {DANGER}; font-size: 16px;")
 
     def _apply_filter(self) -> None:
         q = self._search.text().strip().lower()
@@ -424,7 +424,7 @@ class _TablePane(QWidget):
             ]
         self._render(rows)
         self._count.setText(f"{len(rows)} / {len(self._rows)}")
-        self._count.setStyleSheet(f"color: {MUTED}; font-size: 10px;")
+        self._count.setStyleSheet(f"color: {MUTED}; font-size: 16px;")
 
     def _render(self, rows: Sequence[dict]) -> None:
         cols = self._spec["cols"]

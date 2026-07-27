@@ -108,22 +108,22 @@ class AxialProfilePanel(QWidget):
         hdr.setSpacing(8)
         title = QLabel("📈  AXIAL PROFILES")
         title.setStyleSheet(
-            f"color: {TEXT}; font-size: 12px; font-weight: 700; letter-spacing: .5px;"
+            f"color: {TEXT}; font-size: 17px; font-weight: 700; letter-spacing: .5px;"
         )
         hdr.addWidget(title)
         hdr.addStretch()
 
         seg_lbl = QLabel("Segments")
-        seg_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 10.5px;")
+        seg_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 16px;")
         hdr.addWidget(seg_lbl)
         self._segments_spin = QSpinBox()
         self._segments_spin.setRange(10, 200)
         self._segments_spin.setValue(60)
         self._segments_spin.setFixedWidth(70)
         self._segments_spin.setStyleSheet(
-            f"background-color: {PANEL2}; color: {TEXT}; "
+            f"QWidget {{" f"background-color: {PANEL2}; color: {TEXT}; "
             f"border: 1px solid {BORDER}; border-radius: 4px; padding: 3px 6px; "
-            f"font-size: 11px; font-family: 'Consolas', monospace;"
+            f"font-size: 16px; font-family: 'Consolas', monospace;" f"}}"
         )
         hdr.addWidget(self._segments_spin)
 
@@ -132,7 +132,7 @@ class AxialProfilePanel(QWidget):
         refresh_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {PRIMARY}; color: white; border: none;
-                border-radius: 5px; padding: 5px 14px; font-size: 11px; font-weight: 700;
+                border-radius: 5px; padding: 5px 14px; font-size: 16px; font-weight: 700;
             }}
             QPushButton:hover {{ background-color: #5aaaff; }}
         """)
@@ -143,7 +143,7 @@ class AxialProfilePanel(QWidget):
         outer.addLayout(hdr)
 
         self._status_lbl = QLabel("Press Refresh to load axial profile for the current design.")
-        self._status_lbl.setStyleSheet(f"color: {MUTED}; font-size: 10px;")
+        self._status_lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px;")
         self._status_lbl.setWordWrap(True)
         outer.addWidget(self._status_lbl)
 
@@ -168,7 +168,7 @@ class AxialProfilePanel(QWidget):
         self._plot.showGrid(x=True, y=True, alpha=0.15)
         self._plot.setFixedHeight(220)
         self._plot.setMenuEnabled(False)
-        self._plot.setLabel("bottom", "Length (m)", color=TEXT3, **{"font-size": "9pt"})
+        self._plot.setLabel("bottom", "Length (m)", color=TEXT3, **{"font-size": "12pt"})
         self._plot.getAxis("left").setPen(pg.mkPen(BORDER))
         self._plot.getAxis("bottom").setPen(pg.mkPen(BORDER))
         self._plot.getAxis("left").setTextPen(pg.mkPen(TEXT3))
@@ -181,8 +181,8 @@ class AxialProfilePanel(QWidget):
         # Hover readout via SignalProxy
         self._hover_lbl = QLabel("")
         self._hover_lbl.setStyleSheet(
-            f"background-color: #081321; border-radius: 6px; padding: 6px 12px; "
-            f"color: {TEXT2}; font-size: 10px; font-family: 'Consolas', monospace;"
+            f"QWidget {{" f"background-color: #081321; border-radius: 6px; padding: 6px 12px; "
+            f"color: {TEXT2}; font-size: 16px; font-family: 'Consolas', monospace;" f"}}"
         )
         self._hover_lbl.setVisible(False)
         outer.addWidget(self._hover_lbl)
@@ -198,7 +198,7 @@ class AxialProfilePanel(QWidget):
             ("Choke (<req.)", WARNING), ("Starved (<12%)", MUTED),
         ]:
             lbl = QLabel(f"● {text}")
-            lbl.setStyleSheet(f"color: {color}; font-size: 9px;")
+            lbl.setStyleSheet(f"color: {color}; font-size: 16px;")
             legend_row.addWidget(lbl)
         legend_row.addStretch()
         outer.addLayout(legend_row)
@@ -214,13 +214,13 @@ class AxialProfilePanel(QWidget):
         defl_hdr = QHBoxLayout()
         defl_title = QLabel("📐 SHAFT DEFLECTION PROFILE")
         defl_title.setStyleSheet(
-            f"color: {ACCENT}; font-size: 10px; font-weight: 800; letter-spacing: .8px;"
+            f"color: {ACCENT}; font-size: 16px; font-weight: 800; letter-spacing: .8px;"
         )
         defl_hdr.addWidget(defl_title)
         defl_hdr.addStretch()
         self._defl_shaft_lbl = QLabel("")
         self._defl_shaft_lbl.setStyleSheet(
-            f"color: {PRIMARY}; font-size: 9px; font-family: 'Consolas', monospace;"
+            f"color: {PRIMARY}; font-size: 16px; font-family: 'Consolas', monospace;"
         )
         defl_hdr.addWidget(self._defl_shaft_lbl)
         outer.addLayout(defl_hdr)
@@ -230,8 +230,8 @@ class AxialProfilePanel(QWidget):
         self._defl_plot.showGrid(x=True, y=True, alpha=0.15)
         self._defl_plot.setFixedHeight(140)
         self._defl_plot.setMenuEnabled(False)
-        self._defl_plot.setLabel("bottom", "Length (m)", color=TEXT3, **{"font-size": "9pt"})
-        self._defl_plot.setLabel("left", "δ (mm)", color=TEXT3, **{"font-size": "9pt"})
+        self._defl_plot.setLabel("bottom", "Length (m)", color=TEXT3, **{"font-size": "12pt"})
+        self._defl_plot.setLabel("left", "δ (mm)", color=TEXT3, **{"font-size": "12pt"})
         self._defl_plot.getAxis("left").setPen(pg.mkPen(BORDER))
         self._defl_plot.getAxis("bottom").setPen(pg.mkPen(BORDER))
         self._defl_plot.getAxis("left").setTextPen(pg.mkPen(TEXT3))
@@ -243,26 +243,30 @@ class AxialProfilePanel(QWidget):
         nc_row = QHBoxLayout()
         nc_row.setSpacing(8)
         nc_lbl = QLabel("Critical Speed")
-        nc_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 9px;")
+        nc_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 16px;")
         nc_row.addWidget(nc_lbl)
 
         self._nc_bar_bg = QFrame()
         self._nc_bar_bg.setFixedHeight(10)
-        self._nc_bar_bg.setStyleSheet(f"background-color: {BORDER}; border-radius: 5px;")
+        self._nc_bar_bg.setStyleSheet(
+            f"QWidget {{" f"background-color: {BORDER}; border-radius: 5px;" f"}}"
+        )
         nc_bar_layout = QHBoxLayout(self._nc_bar_bg)
         nc_bar_layout.setContentsMargins(0, 0, 0, 0)
         nc_bar_layout.setSpacing(0)
         self._nc_bar_fill = QFrame()
-        self._nc_bar_fill.setStyleSheet(f"background-color: {SUCCESS}; border-radius: 5px;")
+        self._nc_bar_fill.setStyleSheet(
+            f"QWidget {{" f"background-color: {SUCCESS}; border-radius: 5px;" f"}}"
+        )
         nc_bar_layout.addWidget(self._nc_bar_fill)
         nc_bar_layout.addStretch()
         nc_row.addWidget(self._nc_bar_bg, 1)
 
         self._nc_pct_lbl = QLabel("—")
-        self._nc_pct_lbl.setStyleSheet(f"color: {MUTED}; font-size: 9px;")
+        self._nc_pct_lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px;")
         nc_row.addWidget(self._nc_pct_lbl)
         self._nc_rpm_lbl = QLabel("—")
-        self._nc_rpm_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 9px;")
+        self._nc_rpm_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 16px;")
         nc_row.addWidget(self._nc_rpm_lbl)
         outer.addLayout(nc_row)
 
@@ -289,7 +293,7 @@ class AxialProfilePanel(QWidget):
                     background-color: {color if active else 'transparent'};
                     color: {'#0b1522' if active else TEXT3};
                     border: 1px solid {color if active else BORDER};
-                    border-radius: 4px; padding: 0px 12px; font-size: 10px; font-weight: 700;
+                    border-radius: 4px; padding: 0px 12px; font-size: 16px; font-weight: 700;
                 }}
             """)
 
@@ -300,11 +304,11 @@ class AxialProfilePanel(QWidget):
 
     def set_loading(self) -> None:
         self._status_lbl.setText("Loading axial profile…")
-        self._status_lbl.setStyleSheet(f"color: {PRIMARY}; font-size: 10px;")
+        self._status_lbl.setStyleSheet(f"color: {PRIMARY}; font-size: 16px;")
 
     def set_error(self, message: str) -> None:
         self._status_lbl.setText(f"⚠ {message}")
-        self._status_lbl.setStyleSheet(f"color: {DANGER}; font-size: 10px;")
+        self._status_lbl.setStyleSheet(f"color: {DANGER}; font-size: 16px;")
 
     def set_data(self, response: dict) -> None:
         """response = {"segments": [AxialSegment dict, ...]}"""
@@ -312,7 +316,7 @@ class AxialProfilePanel(QWidget):
             self._status_lbl.setText(
                 response.get("message", "Unknown error") if response else "No response"
             )
-            self._status_lbl.setStyleSheet(f"color: {DANGER}; font-size: 10px;")
+            self._status_lbl.setStyleSheet(f"color: {DANGER}; font-size: 16px;")
             self._segments = []
             self._render_chart()
             self._render_insights()
@@ -321,10 +325,10 @@ class AxialProfilePanel(QWidget):
         self._segments = response.get("segments", [])
         if not self._segments:
             self._status_lbl.setText("No segments returned.")
-            self._status_lbl.setStyleSheet(f"color: {MUTED}; font-size: 10px;")
+            self._status_lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px;")
         else:
             self._status_lbl.setText(f"{len(self._segments)} segments loaded.")
-            self._status_lbl.setStyleSheet(f"color: {SUCCESS}; font-size: 10px;")
+            self._status_lbl.setStyleSheet(f"color: {SUCCESS}; font-size: 16px;")
 
         self._render_chart()
         self._render_insights()
@@ -340,7 +344,7 @@ class AxialProfilePanel(QWidget):
 
     def _render_chart(self) -> None:
         label, key, color, unit, has_req = _TAB_DEFS[self._active_tab]
-        self._plot.setLabel("left", f"{label} ({unit})", color=TEXT3, **{"font-size": "9pt"})
+        self._plot.setLabel("left", f"{label} ({unit})", color=TEXT3, **{"font-size": "12pt"})
 
         for line in self._hanger_lines:
             self._plot.removeItem(line)
@@ -440,9 +444,9 @@ class AxialProfilePanel(QWidget):
         for text in insights:
             box = QLabel(f"⚠ {text}")
             box.setStyleSheet(
-                f"background-color: rgba(232,160,0,.06); border: 1px solid {WARNING}44; "
-                f"border-radius: 5px; padding: 5px 10px; color: {WARNING}; font-size: 10px;"
-            )
+            f"QWidget {{" f"background-color: rgba(232,160,0,.06); border: 1px solid {WARNING}44; "
+                f"border-radius: 5px; padding: 5px 10px; color: {WARNING}; font-size: 16px;" f"}}"
+        )
             box.setWordWrap(True)
             self._insights_layout.addWidget(box)
 
@@ -461,12 +465,12 @@ class AxialProfilePanel(QWidget):
         if is_pipe:
             self._defl_shaft_lbl.setText(f"Pipe Ø{od:.0f}×{id_mm:.0f} mm (hollow)")
             self._defl_shaft_lbl.setStyleSheet(
-                f"color: {PURPLE}; font-size: 9px; font-family: 'Consolas', monospace;"
+                f"color: {PURPLE}; font-size: 16px; font-family: 'Consolas', monospace;"
             )
         else:
             self._defl_shaft_lbl.setText(f"Bar Ø{od:.0f} mm (solid)")
             self._defl_shaft_lbl.setStyleSheet(
-                f"color: {PRIMARY}; font-size: 9px; font-family: 'Consolas', monospace;"
+                f"color: {PRIMARY}; font-size: 16px; font-family: 'Consolas', monospace;"
             )
 
         L = r.get("L", 10.0) or 10.0
@@ -529,6 +533,8 @@ class AxialProfilePanel(QWidget):
         total_w = max(self._nc_bar_bg.width(), 120)
         fill_w = int(total_w * pct / 100)
         self._nc_bar_fill.setFixedWidth(fill_w)
-        self._nc_bar_fill.setStyleSheet(f"background-color: {bar_color}; border-radius: 5px;")
+        self._nc_bar_fill.setStyleSheet(
+            f"QWidget {{" f"background-color: {bar_color}; border-radius: 5px;" f"}}"
+        )
         self._nc_pct_lbl.setText(f"{pct:.0f}% of Nc")
         self._nc_rpm_lbl.setText(f"Nc={nc:.0f} RPM")

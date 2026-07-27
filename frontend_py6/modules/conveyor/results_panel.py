@@ -76,15 +76,15 @@ _CARD_QSS = f"""
 """
 
 _HDR_LABEL_QSS = (
-    f"color: {TEXT3}; font-size: 9.5px; font-weight: 700; "
+    f"color: {TEXT3}; font-size: 16px; font-weight: 700; "
     f"letter-spacing: 1px; text-transform: uppercase;"
 )
 
-_KEY_QSS   = f"color: {TEXT3}; font-size: 10.5px;"
-_VAL_QSS   = f"color: {TEXT};  font-size: 11px; font-family: 'Consolas', monospace; font-weight: 600;"
+_KEY_QSS   = f"color: {TEXT3}; font-size: 16px;"
+_VAL_QSS   = f"color: {TEXT};  font-size: 16px; font-family: 'Consolas', monospace; font-weight: 600;"
 _BADGE_BASE = (
     "border-radius: 4px; padding: 1px 7px; "
-    "font-size: 9px; font-weight: 700;"
+    "font-size: 16px; font-weight: 700;"
 )
 
 
@@ -121,7 +121,7 @@ def _kv_row(key: str, val: str, val_color: str = TEXT) -> QWidget:
     k.setStyleSheet(_KEY_QSS)
     v = QLabel(val)
     v.setStyleSheet(
-        f"color: {val_color}; font-size: 11px; "
+        f"color: {val_color}; font-size: 16px; "
         f"font-family: 'Consolas', monospace; font-weight: 600;"
     )
     v.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -141,7 +141,7 @@ def _kv_row_badge(key: str, val: str, ok: bool) -> QWidget:
     b = _ok_badge(ok)
     v = QLabel(val)
     v.setStyleSheet(
-        f"color: {_ok_col(ok)}; font-size: 11px; "
+        f"color: {_ok_col(ok)}; font-size: 16px; "
         f"font-family: 'Consolas', monospace; font-weight: 600;"
     )
     lay.addWidget(k)
@@ -185,10 +185,10 @@ class _Card(QFrame):
         hdr_lay.setSpacing(7)
 
         icon_lbl = QLabel(icon)
-        icon_lbl.setStyleSheet("font-size: 13px;")
+        icon_lbl.setStyleSheet("font-size: 17px;")
         title_lbl = QLabel(title.upper())
         title_lbl.setStyleSheet(
-            f"color: {accent}; font-size: 9.5px; font-weight: 700; letter-spacing: 1px;"
+            f"color: {accent}; font-size: 16px; font-weight: 700; letter-spacing: 1px;"
         )
         hdr_lay.addWidget(icon_lbl)
         hdr_lay.addWidget(title_lbl)
@@ -248,12 +248,12 @@ class ModelNumberBadge(QFrame):
         top.setSpacing(8)
 
         icon = QLabel("🔩")
-        icon.setStyleSheet("font-size: 13px;")
+        icon.setStyleSheet("font-size: 17px;")
         top.addWidget(icon)
 
         self._model_lbl = QLabel("VM-—-—-—-—-—-—")
         self._model_lbl.setStyleSheet(
-            f"color: {ACCENT}; font-size: 15px; font-weight: 800; "
+            f"color: {ACCENT}; font-size: 18px; font-weight: 800; "
             f"font-family: 'Consolas', monospace; letter-spacing: .5px;"
         )
         top.addWidget(self._model_lbl)
@@ -261,7 +261,7 @@ class ModelNumberBadge(QFrame):
 
         self._series_lbl = QLabel("")
         self._series_lbl.setStyleSheet(
-            f"color: {TEXT3}; font-size: 10px; font-weight: 600;"
+            f"color: {TEXT3}; font-size: 16px; font-weight: 600;"
         )
         top.addWidget(self._series_lbl)
 
@@ -269,7 +269,7 @@ class ModelNumberBadge(QFrame):
 
         self._breakdown_lbl = QLabel("")
         self._breakdown_lbl.setStyleSheet(
-            f"color: {MUTED}; font-size: 9px; font-family: 'Consolas', monospace;"
+            f"color: {MUTED}; font-size: 16px; font-family: 'Consolas', monospace;"
         )
         self._breakdown_lbl.setWordWrap(True)
         lay.addWidget(self._breakdown_lbl)
@@ -336,12 +336,12 @@ class WarnsBanner(QWidget):
 
                 tag = QLabel(f"{icon} {label}")
                 tag.setStyleSheet(
-                    f"color: {color}; font-size: 9px; font-weight: 700;"
+                    f"color: {color}; font-size: 16px; font-weight: 700;"
                 )
                 tag.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
 
                 txt = QLabel(msg)
-                txt.setStyleSheet(f"color: {color}; font-size: 10px;")
+                txt.setStyleSheet(f"color: {color}; font-size: 16px;")
                 txt.setWordWrap(True)
 
                 lay.addWidget(tag)
@@ -570,7 +570,7 @@ class ShaftCard(_Card):
                 f"— saves {pipe_opt['wt_save_pct']}% weight"
             )
             tip.setStyleSheet(
-            f"QFrame {{" f"color: {TEAL}; font-size: 9.5px; padding: 4px 12px; "
+            f"QFrame {{" f"color: {TEAL}; font-size: 16px; padding: 4px 12px; "
                 f"background: {TEAL}11; border-radius: 4px;" f"}}"
         )
             tip.setWordWrap(True)
@@ -632,7 +632,7 @@ class BearingCard(_Card):
             self._body.addWidget(_divider())
             tip = QLabel(f"💡 Upgrade to {adequate} to meet L10 target")
             tip.setStyleSheet(
-                f"color: {WARNING}; font-size: 9.5px; padding: 4px 12px;"
+                f"color: {WARNING}; font-size: 16px; padding: 4px 12px;"
             )
             self._body.addWidget(tip)
             self._rows["_adequate_tip"] = tip
@@ -830,10 +830,10 @@ class MaterialRecsCard(QFrame):
         hdr_lay.setContentsMargins(12, 0, 12, 0)
         hdr_lay.setSpacing(7)
         icon_lbl = QLabel("🛡️")
-        icon_lbl.setStyleSheet("font-size: 13px;")
+        icon_lbl.setStyleSheet("font-size: 17px;")
         title_lbl = QLabel("MATERIAL & SURFACE RECOMMENDATIONS")
         title_lbl.setStyleSheet(
-            f"color: #fb923c; font-size: 9.5px; font-weight: 700; letter-spacing: 1px;"
+            f"color: #fb923c; font-size: 16px; font-weight: 700; letter-spacing: 1px;"
         )
         hdr_lay.addWidget(icon_lbl)
         hdr_lay.addWidget(title_lbl)
@@ -869,7 +869,7 @@ class MaterialRecsCard(QFrame):
         notes_lay.setSpacing(2)
         notes_hdr = QLabel("⚠ DESIGN NOTES")
         notes_hdr.setStyleSheet(
-            f"color: {PRIMARY}; font-size: 9px; font-weight: 700; letter-spacing: .6px;"
+            f"color: {PRIMARY}; font-size: 16px; font-weight: 700; letter-spacing: .6px;"
         )
         notes_lay.addWidget(notes_hdr)
         self._notes_body = QVBoxLayout()
@@ -888,7 +888,7 @@ class MaterialRecsCard(QFrame):
         lay.setSpacing(3)
 
         title = QLabel(f"{icon} {label}")
-        title.setStyleSheet(f"color: {color}; font-size: 10px; font-weight: 700;")
+        title.setStyleSheet(f"color: {color}; font-size: 16px; font-weight: 700;")
         lay.addWidget(title)
 
         items_layout = QVBoxLayout()
@@ -922,7 +922,7 @@ class MaterialRecsCard(QFrame):
             for text in items:
                 lbl = QLabel(f"•  {text}")
                 lbl.setStyleSheet(
-            f"QFrame {{" f"color: #b0c8e0; font-size: 9.5px; "
+            f"QFrame {{" f"color: #b0c8e0; font-size: 16px; "
                     f"border-left: 2px solid {color}55; padding-left: 7px;" f"}}"
         )
                 lbl.setWordWrap(True)
@@ -940,7 +940,7 @@ class MaterialRecsCard(QFrame):
         self._notes_box.setVisible(bool(notes))
         for text in notes:
             lbl = QLabel(f"•  {text}")
-            lbl.setStyleSheet(f"color: #93c5fd; font-size: 9.5px;")
+            lbl.setStyleSheet(f"color: #93c5fd; font-size: 16px;")
             lbl.setWordWrap(True)
             self._notes_body.addWidget(lbl)
 
@@ -979,11 +979,11 @@ class FlowRegimeBar(QFrame):
         lay.addWidget(self._dot)
 
         self._name_lbl = QLabel("")
-        self._name_lbl.setStyleSheet("font-size: 11px; font-weight: 700;")
+        self._name_lbl.setStyleSheet("font-size: 16px; font-weight: 700;")
         lay.addWidget(self._name_lbl)
 
         desc_lbl = QLabel("Normal conveying regime")
-        desc_lbl.setStyleSheet(f"color: {MUTED}; font-size: 10px;")
+        desc_lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px;")
         lay.addWidget(desc_lbl)
 
         lay.addStretch()
@@ -991,7 +991,7 @@ class FlowRegimeBar(QFrame):
         self._class_badge = QLabel("")
         self._class_badge.setStyleSheet(
             f"QFrame {{" f"background-color: #1c3048; color: {MUTED}; "
-            f"padding: 2px 8px; border-radius: 3px; font-size: 9px;" f"}}"
+            f"padding: 2px 8px; border-radius: 3px; font-size: 16px;" f"}}"
         )
         lay.addWidget(self._class_badge)
 
@@ -1009,7 +1009,7 @@ class FlowRegimeBar(QFrame):
             f"QFrame {{" f"background-color: {color}; border-radius: 3px;" f"}}"
         )
         self._name_lbl.setText(regime_name)
-        self._name_lbl.setStyleSheet(f"color: {color}; font-size: 11px; font-weight: 700;")
+        self._name_lbl.setStyleSheet(f"color: {color}; font-size: 16px; font-weight: 700;")
 
         mat_cls = (result.get("mat", {}) or {}).get("cls", "—")
         self._class_badge.setText(f"CEMA Class {mat_cls}")
@@ -1042,7 +1042,7 @@ class CostCard(_Card):
 
         self._body.addWidget(_divider())
         note = QLabel("Indicative fabrication cost — material + labour estimate only")
-        note.setStyleSheet(f"color: {MUTED}; font-size: 9px; padding: 3px 12px;")
+        note.setStyleSheet(f"color: {MUTED}; font-size: 16px; padding: 3px 12px;")
         note.setWordWrap(True)
         self._body.addWidget(note)
         self._rows["_note"] = note

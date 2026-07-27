@@ -75,7 +75,7 @@ _INPUT_QSS = f"""
         border: 1px solid {BORDER};
         border-radius: 4px;
         padding: 3px 6px;
-        font-size: 11.5px;
+        font-size: 17px;
         font-family: 'Consolas', monospace;
         min-height: 22px;
     }}
@@ -99,7 +99,7 @@ _INPUT_QSS = f"""
     }}
     QCheckBox {{
         color: {TEXT2};
-        font-size: 11.5px;
+        font-size: 17px;
         spacing: 6px;
     }}
     QCheckBox::indicator {{
@@ -122,7 +122,7 @@ _SECTION_HDR_QSS = f"""
         border-bottom: 1px solid {BORDER};
         padding: 5px 10px;
         text-align: left;
-        font-size: 10px;
+        font-size: 16px;
         font-weight: 700;
         letter-spacing: 0.8px;
     }}
@@ -135,7 +135,7 @@ _CALC_BTN_QSS = f"""
         color: white;
         border: none;
         border-radius: 6px;
-        font-size: 13px;
+        font-size: 17px;
         font-weight: 700;
         padding: 10px 0;
     }}
@@ -143,8 +143,8 @@ _CALC_BTN_QSS = f"""
     QPushButton:pressed {{ background-color: #3a8ee8; }}
 """
 
-_LABEL_QSS = f"color: {TEXT3}; font-size: 10.5px;"
-_UNIT_QSS  = f"color: {MUTED}; font-size: 9.5px; padding-left: 3px;"
+_LABEL_QSS = f"color: {TEXT3}; font-size: 16px;"
+_UNIT_QSS  = f"color: {MUTED}; font-size: 16px; padding-left: 3px;"
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────

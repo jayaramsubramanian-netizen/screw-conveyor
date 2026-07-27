@@ -62,7 +62,7 @@ _INPUT_QSS = f"""
         padding: 4px 8px;
         color: {TEXT};
         font-family: 'JetBrains Mono', 'Consolas', monospace;
-        font-size: 11px;
+        font-size: 16px;
         min-height: 18px;
     }}
     QDoubleSpinBox:focus, QComboBox:focus {{
@@ -145,7 +145,7 @@ class Field(QWidget):
         )
         cap.setTextFormat(Qt.TextFormat.RichText)
         cap.setStyleSheet(
-            f"color: {MUTED}; font-size: 8.5px; font-weight: 700; "
+            f"color: {MUTED}; font-size: 16px; font-weight: 700; "
             f"letter-spacing: 0.08em;"
         )
         layout.addWidget(cap)
@@ -246,7 +246,7 @@ class Divider(QWidget):
 
         lbl = QLabel(label.upper())
         lbl.setStyleSheet(
-            f"color: {PROCESS_ACCENT}; font-size: 8px; font-weight: 700; "
+            f"color: {PROCESS_ACCENT}; font-size: 16px; font-weight: 700; "
             f"letter-spacing: 0.12em; font-family: 'Barlow Condensed', sans-serif;"
         )
         layout.addWidget(lbl, 0, Qt.AlignmentFlag.AlignVCenter)
@@ -283,7 +283,7 @@ class KpiCard(QFrame):
 
         self._label = QLabel(label.upper())
         self._label.setStyleSheet(
-            f"QFrame {{" f"color: {MUTED}; font-size: 8.5px; font-weight: 700; "
+            f"QFrame {{" f"color: {MUTED}; font-size: 16px; font-weight: 700; "
             f"letter-spacing: 0.10em; border: none;" f"}}"
         )
         layout.addWidget(self._label)
@@ -296,7 +296,7 @@ class KpiCard(QFrame):
 
         self._sub = QLabel()
         self._sub.setStyleSheet(
-            f"QFrame {{" f"color: {TEXT3}; font-size: 9px; border: none;" f"}}"
+            f"QFrame {{" f"color: {TEXT3}; font-size: 16px; border: none;" f"}}"
         )
         self._sub.setVisible(False)
         layout.addWidget(self._sub)
@@ -315,7 +315,7 @@ class KpiCard(QFrame):
         unit = self._unit if unit is None else unit
         colour = _status_color(ok, col)
         unit_html = (
-            f"<span style='font-size:12px;font-weight:400;color:{MUTED};'>"
+            f"<span style='font-size: 17px;font-weight:400;color:{MUTED};'>"
             f" {unit}</span>" if unit else ""
         )
         self._value.setTextFormat(Qt.TextFormat.RichText)
@@ -350,7 +350,7 @@ class ResultRow(QWidget):
 
         self._key = QLabel(label)
         self._key.setStyleSheet(
-            f"QWidget {{" f"color: {MUTED}; font-size: 11px; border: none;" f"}}"
+            f"QWidget {{" f"color: {MUTED}; font-size: 16px; border: none;" f"}}"
         )
         layout.addWidget(self._key)
         layout.addStretch()
@@ -375,7 +375,7 @@ class ResultRow(QWidget):
         )
         self._val.setText(
             f"<span style='font-family:\"JetBrains Mono\",monospace;"
-            f"font-weight:700;font-size:11px;color:{colour};'>{shown}</span>"
+            f"font-weight:700;font-size: 16px;color:{colour};'>{shown}</span>"
             f"{unit_html}"
         )
 
@@ -401,7 +401,7 @@ class Card(QFrame):
 
         head = QLabel(title.upper())
         head.setStyleSheet(
-            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 9px; font-weight: 700; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 16px; font-weight: 700; "
             f"letter-spacing: 0.10em; border: none; "
             f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
@@ -474,7 +474,7 @@ class WarningsPanel(QWidget):
                 lbl.setStyleSheet(
             f"QWidget {{" f"background-color: {bg}; border: 1px solid {colour}; "
                     f"border-radius: 6px; padding: 6px 10px; "
-                    f"font-size: 10px; color: {colour};" f"}}"
+                    f"font-size: 16px; color: {colour};" f"}}"
         )
                 self._layout.addWidget(lbl)
                 any_shown = True
@@ -510,7 +510,7 @@ class RunBtn(QPushButton):
             QPushButton {{
                 background-color: {bg}; color: #ffffff;
                 border: none; border-radius: 5px;
-                font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+                font-size: 16px; font-weight: 800; letter-spacing: 0.08em;
                 font-family: 'Barlow Condensed', sans-serif;
             }}
             QPushButton:hover:enabled {{ background-color: #d9203a; }}
@@ -534,7 +534,7 @@ class ErrorBanner(QFrame):
         self._lbl = QLabel()
         self._lbl.setWordWrap(True)
         self._lbl.setStyleSheet(
-            f"QFrame {{" f"color: {DANGER}; font-size: 11px; border: none;" f"}}"
+            f"QFrame {{" f"color: {DANGER}; font-size: 16px; border: none;" f"}}"
         )
         layout.addWidget(self._lbl)
         self.setVisible(False)
@@ -567,10 +567,10 @@ class EmptyState(QWidget):
 
         for text, qss in (
             (icon, "font-size: 36px;"),
-            (name, f"color: {PROCESS_ACCENT}; font-size: 12px; font-weight: 700;"),
-            (desc, f"color: {MUTED}; font-size: 10px;"),
+            (name, f"color: {PROCESS_ACCENT}; font-size: 17px; font-weight: 700;"),
+            (desc, f"color: {MUTED}; font-size: 16px;"),
             ("Configure inputs → click Run Calculation",
-             f"color: {TEXT3}; font-size: 10px; margin-top: 4px;"),
+             f"color: {TEXT3}; font-size: 16px; margin-top: 4px;"),
         ):
             lbl = QLabel(text)
             lbl.setStyleSheet(qss)
@@ -675,14 +675,14 @@ class ModuleShell(ModuleWorkspace):
         )
         title_lbl = QLabel(title.upper())
         title_lbl.setStyleSheet(
-            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 12px; font-weight: 800; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 17px; font-weight: 800; "
             f"letter-spacing: 0.08em; border: none; "
             f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
         sub_lbl = QLabel(subtitle)
         sub_lbl.setWordWrap(True)
         sub_lbl.setStyleSheet(
-            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
+            f"QFrame {{" f"color: {MUTED}; font-size: 16px; border: none;" f"}}"
         )
         head.addWidget(icon_lbl)
         head.addWidget(title_lbl)

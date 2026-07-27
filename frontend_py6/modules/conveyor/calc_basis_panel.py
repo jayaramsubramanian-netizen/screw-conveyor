@@ -117,7 +117,7 @@ class ParamSweepWidget(QWidget):
 
         title = QLabel("📈 PARAMETRIC SWEEP")
         title.setStyleSheet(
-            f"color: {ACCENT}; font-size: 10px; font-weight: 800; letter-spacing: 1px;"
+            f"color: {ACCENT}; font-size: 16px; font-weight: 800; letter-spacing: 1px;"
         )
         outer.addWidget(title)
 
@@ -165,7 +165,7 @@ class ParamSweepWidget(QWidget):
         self._plot.setVisible(False)
 
         self._status_lbl = QLabel("")
-        self._status_lbl.setStyleSheet(f"color: {PRIMARY}; font-size: 9.5px;")
+        self._status_lbl.setStyleSheet(f"color: {PRIMARY}; font-size: 16px;")
         outer.addWidget(self._status_lbl)
 
     def _select_sweep(self, key: str) -> None:
@@ -180,7 +180,7 @@ class ParamSweepWidget(QWidget):
                     background-color: {ACCENT if active else 'transparent'};
                     color: {'#0b1522' if active else TEXT3};
                     border: none; border-radius: 4px;
-                    padding: 0px 12px; font-size: 10px; font-weight: 700;
+                    padding: 0px 12px; font-size: 16px; font-weight: 700;
                 }}
             """)
 
@@ -193,7 +193,7 @@ class ParamSweepWidget(QWidget):
                 background-color: {'transparent' if running else 'rgba(31,184,110,.1)'};
                 color: {MUTED if running else SUCCESS};
                 border: 1px solid {SUCCESS if not running else BORDER};
-                border-radius: 4px; padding: 0px 14px; font-size: 10px; font-weight: 700;
+                border-radius: 4px; padding: 0px 14px; font-size: 16px; font-weight: 700;
             }}
         """)
 
@@ -223,7 +223,7 @@ class ParamSweepWidget(QWidget):
             self._pwr_curve.setData(xs, pwrs)
             self._plot.setLabel(
                 "bottom", _SWEEP_DEFS[self._sweep_type]["x_label"],
-                color=TEXT3, **{"font-size": "9pt"},
+                color=TEXT3, **{"font-size": "12pt"},
             )
             self._plot.setVisible(True)
             self._status_lbl.setText(f"{len(points)} points swept.")
@@ -254,14 +254,14 @@ class CalcBasisPanel(QFrame):
     ):
         super().__init__(parent)
         self.setStyleSheet(
-            f"background-color: {PANEL}; border: 1px solid {BORDER}; border-radius: 8px;"
+            f"QFrame {{" f"background-color: {PANEL}; border: 1px solid {BORDER}; border-radius: 8px;" f"}}"
         )
         outer = QVBoxLayout(self)
         outer.setContentsMargins(14, 12, 14, 12)
         outer.setSpacing(2)
 
         hdr = QLabel("▶ CALCULATION BASIS & METHOD TRACEABILITY ▼")
-        hdr.setStyleSheet(f"color: #3a5470; font-size: 9px;")
+        hdr.setStyleSheet(f"color: #3a5470; font-size: 16px;")
         outer.addWidget(hdr)
 
         basis_text = QLabel(
@@ -273,7 +273,7 @@ class CalcBasisPanel(QFrame):
             "Class II field data<br/>"
             "Ce=0.50 empirical friction factor (CEMA-based)"
         )
-        basis_text.setStyleSheet(f"color: #3a5470; font-size: 9px; line-height: 1.7;")
+        basis_text.setStyleSheet(f"color: #3a5470; font-size: 16px; line-height: 1.7;")
         basis_text.setTextFormat(Qt.TextFormat.RichText)
         outer.addWidget(basis_text)
 

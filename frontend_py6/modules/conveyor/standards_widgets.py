@@ -121,7 +121,7 @@ class StdTabsWidget(QWidget):
         explain.setStyleSheet(
             f"QWidget {{" f"background-color: rgba(74,158,255,.05); "
             f"border: 1px solid rgba(74,158,255,.15); border-radius: 7px; "
-            f"padding: 8px 12px; color: rgba(221,234,246,.75); font-size: 9.5px;"
+            f"padding: 8px 12px; color: rgba(221,234,246,.75); font-size: 16px;"
          f"}}"
         )
         explain.setWordWrap(True)
@@ -143,18 +143,18 @@ class StdTabsWidget(QWidget):
         text_box.setSpacing(1)
         self._std_label_lbl = QLabel("")
         self._std_label_lbl.setStyleSheet(
-            f"color: {ACCENT}; font-size: 11px; font-weight: 700;"
+            f"color: {ACCENT}; font-size: 16px; font-weight: 700;"
         )
         text_box.addWidget(self._std_label_lbl)
         self._std_desc_lbl = QLabel("")
-        self._std_desc_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 9.5px;")
+        self._std_desc_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 16px;")
         self._std_desc_lbl.setWordWrap(True)
         text_box.addWidget(self._std_desc_lbl)
         top_row.addLayout(text_box, 1)
 
         self._lambda_calc_lbl = QLabel("")
         self._lambda_calc_lbl.setStyleSheet(
-            f"color: {TEXT}; font-size: 10px; font-family: 'Consolas', monospace;"
+            f"color: {TEXT}; font-size: 16px; font-family: 'Consolas', monospace;"
         )
         self._lambda_calc_lbl.setAlignment(
             Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
@@ -172,7 +172,7 @@ class StdTabsWidget(QWidget):
                     background-color: transparent;
                     color: {ACCENT if active else TEXT3};
                     border: none; border-bottom: 2px solid {ACCENT if active else 'transparent'};
-                    padding: 0px 16px; font-size: 12px; font-weight: 700;
+                    padding: 0px 16px; font-size: 17px; font-weight: 700;
                 }}
             """)
 
@@ -286,10 +286,10 @@ class StdCompTable(QFrame):
         hdr_lay.setContentsMargins(12, 0, 12, 0)
         hdr_lay.setSpacing(7)
         icon = QLabel("📊")
-        icon.setStyleSheet("font-size: 13px;")
+        icon.setStyleSheet("font-size: 17px;")
         title = QLabel("STANDARDS COMPARISON")
         title.setStyleSheet(
-            f"color: {ACCENT}; font-size: 9.5px; font-weight: 700; letter-spacing: 1px;"
+            f"color: {ACCENT}; font-size: 16px; font-weight: 700; letter-spacing: 1px;"
         )
         hdr_lay.addWidget(icon)
         hdr_lay.addWidget(title)
@@ -309,7 +309,7 @@ class StdCompTable(QFrame):
         for c, h in enumerate(col_headers):
             lbl = QLabel(h.upper())
             lbl.setStyleSheet(
-                f"color: {TEXT3}; font-size: 9px; font-weight: 700; "
+                f"color: {TEXT3}; font-size: 16px; font-weight: 700; "
                 f"letter-spacing: .5px; padding: 4px 8px;"
             )
             self._grid.addWidget(lbl, 0, c)
@@ -319,7 +319,7 @@ class StdCompTable(QFrame):
         for row_idx, (label, _extract, _ok) in enumerate(_ROW_DEFS, start=1):
             label_lbl = QLabel(label)
             label_lbl.setStyleSheet(
-            f"QFrame {{" f"color: {TEXT3}; font-size: 9.5px; padding: 3px 8px; "
+            f"QFrame {{" f"color: {TEXT3}; font-size: 16px; padding: 3px 8px; "
                 f"border-bottom: 1px solid rgba(28,48,72,.4);" f"}}"
         )
             self._grid.addWidget(label_lbl, row_idx, 0)
@@ -328,7 +328,7 @@ class StdCompTable(QFrame):
             for c in range(1, 4):
                 cell = QLabel("—")
                 cell.setStyleSheet(
-            f"QFrame {{" f"color: {TEXT}; font-size: 10.5px; font-weight: 700; "
+            f"QFrame {{" f"color: {TEXT}; font-size: 16px; font-weight: 700; "
                     f"font-family: 'Consolas', monospace; padding: 3px 8px; "
                     f"border-bottom: 1px solid rgba(28,48,72,.4);" f"}}"
         )
@@ -362,7 +362,7 @@ class StdCompTable(QFrame):
                 else:
                     color = TEXT
                 cell.setStyleSheet(
-            f"QFrame {{" f"color: {color}; font-size: 10.5px; font-weight: 700; "
+            f"QFrame {{" f"color: {color}; font-size: 16px; font-weight: 700; "
                     f"font-family: 'Consolas', monospace; padding: 3px 8px; "
                     f"border-bottom: 1px solid rgba(28,48,72,.4);" f"}}"
         )

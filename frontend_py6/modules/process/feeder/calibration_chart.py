@@ -48,11 +48,11 @@ class _SampleTile(QFrame):
         layout.setSpacing(1)
         self._n = QLabel("—")
         self._n.setStyleSheet(
-            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
+            f"QFrame {{" f"color: {MUTED}; font-size: 16px; border: none;" f"}}"
         )
         self._q = QLabel("—")
         self._q.setStyleSheet(
-            f"QFrame {{" f"color: {TEXT}; font-size: 9px; font-weight: 700; border: none; "
+            f"QFrame {{" f"color: {TEXT}; font-size: 16px; font-weight: 700; border: none; "
             f"font-family: 'JetBrains Mono', monospace;" f"}}"
         )
         layout.addWidget(self._n)
@@ -85,7 +85,7 @@ class CalibrationChart(QFrame):
 
         title = QLabel("📈 N VS Q CALIBRATION CURVE")
         title.setStyleSheet(
-            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 9px; font-weight: 700; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 16px; font-weight: 700; "
             f"letter-spacing: 0.10em; border: none; "
             f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
@@ -95,7 +95,7 @@ class CalibrationChart(QFrame):
             "Speed (RPM) → Mass flow (t/h) — linear relationship for screw feeders"
         )
         sub.setStyleSheet(
-            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
+            f"QFrame {{" f"color: {MUTED}; font-size: 16px; border: none;" f"}}"
         )
         layout.addWidget(sub)
 
@@ -110,7 +110,7 @@ class CalibrationChart(QFrame):
             axis = self._plot.getAxis(name)
             axis.setPen(pg.mkPen(BORDER))
             axis.setTextPen(pg.mkPen(MUTED))
-            axis.setLabel(text, **{"color": MUTED, "font-size": "8pt"})
+            axis.setLabel(text, **{"color": MUTED, "font-size": "12pt"})
         self._curve = self._plot.plot([], [], pen=pg.mkPen(PRIMARY, width=2))
         layout.addWidget(self._plot)
 

@@ -92,7 +92,7 @@ class FeederWorkspace(ModuleShell):
         self._flood_warn.setStyleSheet(
             f"QFrame {{" f"background-color: rgba(224,82,82,0.08); "
             f"border: 1px solid {DANGER}; border-radius: 4px; "
-            f"padding: 5px 8px; font-size: 9px; color: {DANGER};" f"}}"
+            f"padding: 5px 8px; font-size: 16px; color: {DANGER};" f"}}"
         )
         self._flood_warn.setVisible(False)
         layout.addWidget(self._flood_warn)
@@ -243,7 +243,7 @@ class FeederWorkspace(ModuleShell):
         self._r_cvt = acc.add_row(ResultRow("CV total (RSS)", unit="%"))
         self._acc_class = QLabel()
         self._acc_class.setStyleSheet(
-            f"QFrame {{" "border: none; font-size: 9px;" f"}}"
+            f"QFrame {{" "border: none; font-size: 16px;" f"}}"
         )
         acc.add_widget(self._acc_class)
         cgrid.addWidget(acc, 0, 1)
@@ -278,7 +278,7 @@ class FeederWorkspace(ModuleShell):
         self._r_ctlok = ctl.add_row(ResultRow("Control OK"))
         self._liw_head = QLabel("⚖️ LIW LOAD CELL")
         self._liw_head.setStyleSheet(
-            f"QFrame {{" f"color: {TEAL}; font-size: 9px; font-weight: 700; border: none;" f"}}"
+            f"QFrame {{" f"color: {TEAL}; font-size: 16px; font-weight: 700; border: none;" f"}}"
         )
         ctl.add_widget(self._liw_head)
         self._r_lc = ctl.add_row(ResultRow("LC rating", unit="kg"))
@@ -348,7 +348,7 @@ class FeederWorkspace(ModuleShell):
         self._r_cvt.set_value(fmt(cv, 2))
         self._acc_class.setText(r.get("accuracy_class") or "")
         self._acc_class.setStyleSheet(
-            f"QFrame {{" f"border: none; font-size: 9px; font-weight: 700; color: {cv_col};" f"}}"
+            f"QFrame {{" f"border: none; font-size: 16px; font-weight: 700; color: {cv_col};" f"}}"
         )
 
         self._r_pe.set_value(fmt(r.get("P_e"), 4))

@@ -102,7 +102,7 @@ class ManualWorkspace(ModuleWorkspace):
         self._status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._status.setWordWrap(True)
         self._status.setStyleSheet(
-            f"color: {MUTED}; font-size: 12px; padding: 40px;"
+            f"color: {MUTED}; font-size: 17px; padding: 40px;"
         )
         self._layout.addWidget(self._status)
 
@@ -138,7 +138,7 @@ class ManualWorkspace(ModuleWorkspace):
             QPushButton {{
                 background-color: {ACCENT}; color: #10233a;
                 border: none; border-radius: 5px; padding: 0 18px;
-                font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+                font-size: 16px; font-weight: 800; letter-spacing: 0.06em;
             }}
         """)
         btn.clicked.connect(self._open_external)

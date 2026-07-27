@@ -47,6 +47,7 @@ from core.theme import (
     PRIMARY, SUCCESS, WARNING, DANGER, ACCENT, TEAL, PURPLE,
 )
 from core.api_client import fetch_design, fetch_gearboxes, fetch_bearings
+from .nsga2 import optimise as nsga2_optimise
 
 
 # ── formatting helpers ────────────────────────────────────────────────────
@@ -144,9 +145,11 @@ class _OptimizerWorker(QObject):
         goals: list[str],
         gearbox_models: list[str],
         bearing_names: list[str],
+        method: str = "grid",
     ):
         super().__init__()
         self._phase = phase
+        self._method = method
         self._base = base_payload
         self._goals = goals
         self._gbx_list = gearbox_models
@@ -166,6 +169,65 @@ class _OptimizerWorker(QObject):
 
     # ── Phase 1 — Geometry ───────────────────────────────────────────────
     def _run_geometry(self) -> None:
+        """Phase 1 — grid sweep or NSGA-II, per self._method."""
+        if self._method == "nsga2":
+            self._run_geometry_nsga2()
+        else:
+            self._run_geometry_grid()
+
+    def _run_geometry_nsga2(self) -> None:
+        """
+        NSGA-II over (diameter index, speed, pitch ratio).
+
+        Phase 1 only — see modules/conveyor/nsga2.py for why phases 2-3 stay
+        on the catalogue grid sweep. Diameter is an index into the standard
+        list, so every candidate is an orderable part.
+
+        Candidates are emitted in the same dict shape the grid sweep
+        produces, so the UI (cards, Apply) needs no change either way.
+        """
+        candidates, trials = [], []
+
+        def _evaluate(D: float, N: float, P: float) -> dict:
+            return fetch_design({**self._base, "D": D, "N": N, "P": P,
+                                 "use_multipitch": False, "lam_factor": 1.0})
+
+        def _progress(done: int, total: int) -> bool:
+            self.progress.emit(done, total)
+            return not self._stop
+
+        front, seen = nsga2_optimise(
+            _evaluate, self._goals, pop_size=24, generations=12,
+            progress=_progress,
+        )
+        if self._stop:
+            return
+
+        def _pack(ind) -> dict:
+            r = ind.result or {}
+            return {
+                "D": ind.D, "N": round(ind.N, 1),
+                "P": min(ind.D * ind.pr, 1.5), "pr": round(ind.pr, 3),
+                "score": _score_candidate(r, self._goals),
+                "kWh": (r.get("eff", {}) or {}).get("kWh_t", 9),
+                "cost": (r.get("cost", {}) or {}).get("total", 0),
+                "life": (r.get("wear", {}) or {}).get("life_h", 0),
+                "defl_mm": (r.get("deflection", 0) or 0) * 1000,
+                "L10": (r.get("brg_r", {}) or {}).get("L10", 0),
+                "motor": (r.get("pwr", {}) or {}).get("motor", 0),
+                "r": r,
+            }
+
+        # The Pareto front IS the candidate list — every member is
+        # non-dominated, so none is objectively worse than another. They are
+        # ordered by weighted score only to give the cards a stable order,
+        # not because the top one is "the" answer.
+        candidates = [_pack(i) for i in front]
+        candidates.sort(key=lambda c: -c["score"])
+        trials = [_pack(i) for i in seen]
+        self._emit_result(candidates, trials, len(seen))
+
+    def _run_geometry_grid(self) -> None:
         Ds = [0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60]
         Ns = [20, 30, 40, 50, 60, 80, 100, 120]
         PRs = [0.75, 0.875, 1.0, 1.125, 1.25]
@@ -324,7 +386,7 @@ def _style_goal_pill(btn: QPushButton, active: bool) -> None:
             background-color: {'rgba(232,160,0,.12)' if active else 'transparent'};
             color: {ACCENT if active else TEXT3};
             border: 1px solid {ACCENT if active else BORDER};
-            border-radius: 13px; padding: 0px 14px; font-size: 10.5px; font-weight: 700;
+            border-radius: 13px; padding: 0px 14px; font-size: 16px; font-weight: 700;
         }}
     """)
 
@@ -337,7 +399,7 @@ class _CandidateCard(QFrame):
         border = TEAL if is_top else BORDER
         bg = "rgba(45,212,191,.05)" if is_top else "rgba(0,0,0,.15)"
         self.setStyleSheet(
-            f"background-color: {bg}; border: 1px solid {border}44; border-radius: 8px;"
+            f"QFrame {{" f"background-color: {bg}; border: 1px solid {border}44; border-radius: 8px;" f"}}"
         )
         lay = QHBoxLayout(self)
         lay.setContentsMargins(12, 8, 10, 8)
@@ -348,13 +410,13 @@ class _CandidateCard(QFrame):
 
         self._label_lbl = QLabel("")
         self._label_lbl.setStyleSheet(
-            f"color: {TEAL if is_top else TEXT}; font-size: 10.5px; font-weight: 700; "
+            f"color: {TEAL if is_top else TEXT}; font-size: 16px; font-weight: 700; "
             f"font-family: 'Consolas', monospace;"
         )
         text_box.addWidget(self._label_lbl)
 
         self._stats_lbl = QLabel("")
-        self._stats_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 9px;")
+        self._stats_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 16px;")
         self._stats_lbl.setWordWrap(True)
         text_box.addWidget(self._stats_lbl)
 
@@ -367,7 +429,7 @@ class _CandidateCard(QFrame):
             QPushButton {{
                 background: transparent; color: {TEAL};
                 border: 1px solid {TEAL}44; border-radius: 6px;
-                padding: 0px 14px; font-size: 10px; font-weight: 700;
+                padding: 0px 14px; font-size: 16px; font-weight: 700;
             }}
             QPushButton:hover {{ background: rgba(45,212,191,.1); }}
         """)
@@ -383,6 +445,12 @@ class _CandidateCard(QFrame):
 # ══════════════════════════════════════════════════════════════════════════
 
 class AutoOptimizerPanel(QWidget):
+    """
+    Phase 1 runs either the catalogue grid sweep or NSGA-II, selected by
+    self._method ("grid" | "nsga2"). Phases 2-3 always use the grid sweep —
+    those spaces are catalogue lookups (gearboxes, bearings, hanger counts)
+    where a genetic algorithm has nothing continuous to explore.
+    """
     """
     Optimizer tab content.
 
@@ -404,6 +472,9 @@ class AutoOptimizerPanel(QWidget):
 
         self._goals: set[str] = {"efficiency"}
         self._phase: str = "geometry"
+        # "grid" (catalogue sweep) or "nsga2" (Pareto front). Applies to
+        # Phase 1 only; phases 2-3 are catalogue lookups either way.
+        self._method: str = "nsga2"
         self._applied: dict[str, dict] = {}          # phase -> overrides dict
         self._phase_results: dict[str, dict] = {}     # phase -> sweep result
         self._gbx_list: list[str] = []
@@ -440,21 +511,21 @@ class AutoOptimizerPanel(QWidget):
 
         # Header
         title = QLabel("✨ Sequential Auto-Optimiser")
-        title.setStyleSheet(f"color: {TEXT}; font-size: 15px; font-weight: 800;")
+        title.setStyleSheet(f"color: {TEXT}; font-size: 18px; font-weight: 800;")
         self._body_layout.addWidget(title)
 
         subtitle = QLabel(
             "Three phases — run each, apply preferred result, continue. "
             "Changes update the live design immediately."
         )
-        subtitle.setStyleSheet(f"color: {TEXT3}; font-size: 10px;")
+        subtitle.setStyleSheet(f"color: {TEXT3}; font-size: 16px;")
         subtitle.setWordWrap(True)
         self._body_layout.addWidget(subtitle)
 
         # Goals row
         goals_hdr = QLabel("OPTIMISATION GOALS (multi-select)")
         goals_hdr.setStyleSheet(
-            f"color: {TEXT3}; font-size: 9px; font-weight: 700; letter-spacing: .6px;"
+            f"color: {TEXT3}; font-size: 16px; font-weight: 700; letter-spacing: .6px;"
         )
         self._body_layout.addWidget(goals_hdr)
 
@@ -488,8 +559,8 @@ class AutoOptimizerPanel(QWidget):
         # Effective design summary bar
         self._summary_lbl = QLabel("")
         self._summary_lbl.setStyleSheet(
-            f"background-color: #081321; border-radius: 6px; padding: 7px 12px; "
-            f"color: {TEXT3}; font-size: 9.5px; font-family: 'Consolas', monospace;"
+            f"QWidget {{" f"background-color: #081321; border-radius: 6px; padding: 7px 12px; "
+            f"color: {TEXT3}; font-size: 16px; font-family: 'Consolas', monospace;" f"}}"
         )
         self._summary_lbl.setWordWrap(True)
         self._body_layout.addWidget(self._summary_lbl)
@@ -500,7 +571,7 @@ class AutoOptimizerPanel(QWidget):
         self._body_layout.addLayout(self._content_layout)
 
         self._empty_lbl = QLabel("")
-        self._empty_lbl.setStyleSheet(f"color: {MUTED}; font-size: 10.5px; padding: 20px;")
+        self._empty_lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px; padding: 20px;")
         self._empty_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._empty_lbl.setWordWrap(True)
         self._content_layout.addWidget(self._empty_lbl)
@@ -510,7 +581,7 @@ class AutoOptimizerPanel(QWidget):
         # Footer — status + run button
         footer = QHBoxLayout()
         self._status_lbl = QLabel("")
-        self._status_lbl.setStyleSheet(f"color: {PRIMARY}; font-size: 10px;")
+        self._status_lbl.setStyleSheet(f"color: {PRIMARY}; font-size: 16px;")
         footer.addWidget(self._status_lbl)
         footer.addStretch()
 
@@ -563,7 +634,7 @@ class AutoOptimizerPanel(QWidget):
                     background-color: {'rgba(232,160,0,.10)' if active else 'transparent'};
                     color: {ACCENT if active else TEXT3};
                     border: none; border-bottom: 2px solid {ACCENT if active else 'transparent'};
-                    padding: 0px 12px; font-size: 10.5px; font-weight: 700; text-align: left;
+                    padding: 0px 12px; font-size: 16px; font-weight: 700; text-align: left;
                 }}
             """)
 
@@ -575,7 +646,7 @@ class AutoOptimizerPanel(QWidget):
                 background-color: {'transparent' if running else 'rgba(45,212,191,.12)'};
                 color: {MUTED if running else TEAL};
                 border: 1px solid {TEAL if not running else BORDER};
-                border-radius: 6px; padding: 0px 20px; font-size: 11px; font-weight: 700;
+                border-radius: 6px; padding: 0px 20px; font-size: 16px; font-weight: 700;
             }}
         """)
 
@@ -624,6 +695,7 @@ class AutoOptimizerPanel(QWidget):
         self._worker = _OptimizerWorker(
             phase, base_payload, list(self._goals),
             self._gbx_list, self._brg_list,
+            method=self._method,
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -680,7 +752,7 @@ class AutoOptimizerPanel(QWidget):
                 "drive": "Run Phase 3 to sweep gearbox and bearing combinations",
             }[self._phase]
             lbl = QLabel(hint)
-            lbl.setStyleSheet(f"color: {MUTED}; font-size: 10.5px; padding: 24px;")
+            lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px; padding: 24px;")
             lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lbl.setWordWrap(True)
             self._content_layout.addWidget(lbl)
@@ -695,19 +767,19 @@ class AutoOptimizerPanel(QWidget):
         )
         status_lbl = QLabel(status_text)
         status_lbl.setStyleSheet(
-            f"color: {status_color}; font-size: 10.5px; font-weight: 700;"
+            f"color: {status_color}; font-size: 16px; font-weight: 700;"
         )
         self._content_layout.addWidget(status_lbl)
 
         if feasible == 0 and pr.get("skip_ok"):
             note = QLabel("Phase 2 is optional — skip or adjust pitch manually")
-            note.setStyleSheet(f"color: {TEXT3}; font-size: 9.5px;")
+            note.setStyleSheet(f"color: {TEXT3}; font-size: 16px;")
             self._content_layout.addWidget(note)
 
         if feasible == 0 and pr.get("partial"):
             partial_hdr = QLabel("🔍 Best Partial — apply as starting point, refine manually:")
             partial_hdr.setStyleSheet(
-                f"color: {WARNING}; font-size: 10px; font-weight: 700; padding-top: 4px;"
+                f"color: {WARNING}; font-size: 16px; font-weight: 700; padding-top: 4px;"
             )
             self._content_layout.addWidget(partial_hdr)
             self._add_candidate_card(pr["partial"], 0, is_top=False)

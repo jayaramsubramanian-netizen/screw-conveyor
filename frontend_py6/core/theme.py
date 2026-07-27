@@ -22,6 +22,65 @@ NONE_C    = "#5a7a9a"
 
 # ── Screw conveyor specific ───────────────────────────────────────────────
 ACCENT    = "#e8a000"       # amber — matches HTML app C.accent
+
+# ══════════════════════════════════════════════════════════════════════════
+# TYPOGRAPHY SCALE — 16 px floor
+# ══════════════════════════════════════════════════════════════════════════
+# Every font-size in the application must come from this scale. 16 px (12 pt)
+# is the MINIMUM readable size for this product: it is used on plant floors
+# and in design offices on scaled displays, and the previous 8-11 px chrome
+# was unreadable at normal viewing distance.
+#
+# Do not write a literal px size in a component. If a new size seems needed,
+# add it here so the scale stays auditable — a regex sweep for
+# `font-size: <n>px` should only ever find these constants.
+
+FONT_FAMILY      = "Arial, 'Segoe UI', sans-serif"
+FONT_FAMILY_MONO = "'JetBrains Mono', 'Consolas', monospace"
+
+FS_CAPTION = 16   # smallest permitted — field captions, units, sub-labels
+FS_BODY    = 16   # default body text, table cells, list rows
+FS_LABEL   = 17   # row labels, form labels
+FS_VALUE   = 18   # numeric results in tables/rows
+FS_SUBHEAD = 18   # card titles, section headers
+FS_HEAD    = 20   # panel/column headers
+FS_KPI     = 26   # large KPI numerals
+FS_TITLE   = 22   # module titles
+
+# ══════════════════════════════════════════════════════════════════════════
+# TEXT COLOUR DOCTRINE
+# ══════════════════════════════════════════════════════════════════════════
+# Readable text is TEXT (near-white). Full stop.
+#
+# TEXT2 / TEXT3 / MUTED exist for NON-TEXT roles only: hairlines, disabled
+# states, chart gridlines, placeholder glyphs. They must not be used to
+# de-emphasise words — grey-on-dark at small sizes was the single biggest
+# legibility problem in the previous build.
+#
+# Colour on text carries STATUS and nothing else:
+#     SUCCESS  pass / within limit
+#     WARNING  advisory / approaching limit
+#     DANGER   fail / exceeded
+#     ACCENT   the one accented header per container
+# A value that is merely "less important" stays TEXT and is de-emphasised by
+# size or weight instead.
+
+# ══════════════════════════════════════════════════════════════════════════
+# BORDER DOCTRINE — one border per container
+# ══════════════════════════════════════════════════════════════════════════
+# A container draws at most ONE border. Children inside it draw none; group
+# them with spacing or a background tint.
+#
+# CRITICAL Qt detail: a stylesheet set on a widget cascades to its children,
+# and TYPE selectors match subclasses — QLabel inherits QFrame, so
+# `QFrame {border: ...}` still borders every label inside. Scope container
+# stylesheets by objectName:
+#
+#     self.setObjectName("myCard")
+#     self.setStyleSheet(f"#myCard {{ border: 1px solid {BORDER}; }}")
+#
+# This is what produces "box in a box" when got wrong.
+
 PROCESS_ACCENT = "#c8192e"  # Jayveecons crimson — matches ProcessPage.tsx C.accent.
                             # The six process modules accent crimson, not amber;
                             # the conveyor calc page keeps ACCENT. Added here rather

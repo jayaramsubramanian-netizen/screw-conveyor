@@ -105,7 +105,7 @@ class _QualityBand(QFrame):
         )
         self._detail = QLabel("")
         self._detail.setStyleSheet(
-            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
+            f"QFrame {{" f"color: {MUTED}; font-size: 16px; border: none;" f"}}"
         )
         text_col.addWidget(self._quality)
         text_col.addWidget(self._detail)
@@ -131,7 +131,7 @@ class _QualityBand(QFrame):
         )
         self._m.setTextFormat(Qt.TextFormat.RichText)
         self._quality.setText(
-            f"<span style='font-size:11px;font-weight:700;color:{colour};'>"
+            f"<span style='font-size: 16px;font-weight:700;color:{colour};'>"
             f"{_lacey_label(m)} mixing quality</span>"
         )
         self._quality.setTextFormat(Qt.TextFormat.RichText)

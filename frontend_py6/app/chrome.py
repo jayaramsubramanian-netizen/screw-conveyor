@@ -84,7 +84,7 @@ class AppTitleBar(QFrame):
         icon.setFixedSize(30, 30)
         icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         icon.setStyleSheet(
-            f"QFrame {{" f"background-color: {BRAND_RED}; border-radius: 7px; font-size: 15px;" f"}}"
+            f"QFrame {{" f"background-color: {BRAND_RED}; border-radius: 7px; font-size: 18px;" f"}}"
         )
         layout.addWidget(icon)
 
@@ -93,11 +93,11 @@ class AppTitleBar(QFrame):
         brand_box.setSpacing(0)
         brand_title = QLabel("VECTRIX™")
         brand_title.setStyleSheet(
-            f"color: {TEXT}; font-size: 13px; font-weight: 700;"
+            f"color: {TEXT}; font-size: 17px; font-weight: 700;"
         )
         brand_sub = QLabel("DESIGN PLATFORM")
         brand_sub.setStyleSheet(
-            f"color: {TEXT3}; font-size: 8px; font-weight: 600; letter-spacing: 1px;"
+            f"color: {TEXT3}; font-size: 16px; font-weight: 600; letter-spacing: 1px;"
         )
         brand_box.addWidget(brand_title)
         brand_box.addWidget(brand_sub)
@@ -119,7 +119,7 @@ class AppTitleBar(QFrame):
         badge.setStyleSheet(
             f"QFrame {{" f"background-color: rgba(255,255,255,.18); color: white; "
             f"border-radius: 999px; padding: 2px 8px; "
-            f"font-size: 8.5px; font-weight: 700;"
+            f"font-size: 16px; font-weight: 700;"
          f"}}"
         )
         module_layout.addWidget(badge)
@@ -134,11 +134,11 @@ class AppTitleBar(QFrame):
         # Backend status dot
         self._backend_dot = QLabel("●")
         self._backend_dot.setToolTip("Backend: checking…")
-        self._backend_dot.setStyleSheet(f"color: {MUTED}; font-size: 14px;")
+        self._backend_dot.setStyleSheet(f"color: {MUTED}; font-size: 18px;")
         layout.addWidget(self._backend_dot)
 
         backend_lbl = QLabel("Backend")
-        backend_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 10px;")
+        backend_lbl.setStyleSheet(f"color: {TEXT3}; font-size: 16px;")
         layout.addWidget(backend_lbl)
 
         # PDF button
@@ -148,7 +148,7 @@ class AppTitleBar(QFrame):
         pdf_btn.setStyleSheet(
             f"QFrame {{" f"background-color: {PANEL2}; color: {TEXT2}; "
             f"border: 1px solid {BORDER}; border-radius: {MODULE_PILL_RADIUS}px; "
-            f"padding: 0px 14px; font-size: 11.5px; font-weight: 600;" f"}}"
+            f"padding: 0px 14px; font-size: 17px; font-weight: 600;" f"}}"
         )
         pdf_btn.clicked.connect(self.pdf_requested)
         layout.addWidget(pdf_btn)
@@ -156,16 +156,16 @@ class AppTitleBar(QFrame):
         # Version label
         version_lbl = QLabel("JAYVEECONS GROUP  ·  V1.0")
         version_lbl.setStyleSheet(
-            f"color: {TEXT3}; font-size: 10px; font-weight: 600; letter-spacing: .5px;"
+            f"color: {TEXT3}; font-size: 16px; font-weight: 600; letter-spacing: .5px;"
         )
         layout.addWidget(version_lbl)
 
     def set_backend_status(self, online: bool) -> None:
         if online:
-            self._backend_dot.setStyleSheet(f"color: {SUCCESS}; font-size: 14px;")
+            self._backend_dot.setStyleSheet(f"color: {SUCCESS}; font-size: 18px;")
             self._backend_dot.setToolTip("Backend: connected")
         else:
-            self._backend_dot.setStyleSheet(f"color: {DANGER}; font-size: 14px;")
+            self._backend_dot.setStyleSheet(f"color: {DANGER}; font-size: 18px;")
             self._backend_dot.setToolTip(
                 "Backend: offline — run: uvicorn backend.main:app --reload"
             )
@@ -182,14 +182,14 @@ class PageMenuBar(QFrame):
             background-color: {PANEL2}; color: {TEXT2};
             border: 1px solid {BORDER}; border-radius: 8px; padding: 4px;
         }}
-        QMenu::item {{ padding: 5px 22px 5px 12px; border-radius: 4px; font-size: 12px; }}
+        QMenu::item {{ padding: 5px 22px 5px 12px; border-radius: 4px; font-size: 17px; }}
         QMenu::item:selected {{ background-color: {PRIMARY}; color: white; }}
         QMenu::separator {{ height: 1px; background-color: {BORDER}; margin: 3px 6px; }}
     """
     _BTN_QSS = f"""
         QPushButton {{
             background-color: transparent; color: {TEXT2};
-            border-style: none; padding: 0px 12px; font-size: 12px;
+            border-style: none; padding: 0px 12px; font-size: 17px;
         }}
         QPushButton:hover {{ background-color: {PANEL2}; }}
         QPushButton::menu-indicator {{ image: none; }}
@@ -230,7 +230,7 @@ class PageMenuBar(QFrame):
 
         self._active_lbl = QLabel()
         self._active_lbl.setStyleSheet(
-            f"color: {ACCENT}; font-size: 10.5px; font-weight: 700; "
+            f"color: {ACCENT}; font-size: 16px; font-weight: 700; "
             f"letter-spacing: .5px; padding-right: 8px;"
         )
         self.set_active_page(current_page)
@@ -255,7 +255,7 @@ class TopNav(QFrame):
             background-color: {PANEL2}; color: {TEXT2};
             border: 1px solid {BORDER}; border-radius: 8px; padding: 4px;
         }}
-        QMenu::item {{ padding: 6px 24px 6px 14px; border-radius: 5px; font-size: 12px; }}
+        QMenu::item {{ padding: 6px 24px 6px 14px; border-radius: 5px; font-size: 17px; }}
         QMenu::item:selected {{ background-color: {PRIMARY}; color: white; }}
         QMenu::separator {{ height: 1px; background-color: {BORDER}; margin: 4px 8px; }}
     """
@@ -278,7 +278,7 @@ class TopNav(QFrame):
             QPushButton {{
                 background-color: transparent; color: {TEXT2};
                 border-style: none; border-radius: {TAB_PILL_RADIUS}px;
-                padding: 0px 16px; font-size: 12.5px; font-weight: 600;
+                padding: 0px 16px; font-size: 17px; font-weight: 600;
             }}
             QPushButton:hover {{ background-color: {PANEL2}; }}
             QPushButton::menu-indicator {{ image: none; }}

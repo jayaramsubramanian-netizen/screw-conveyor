@@ -42,7 +42,7 @@ class ColHeader(QFrame):
         super().__init__(parent)
         self.setFixedHeight(36)
         self.setStyleSheet(
-            f"background-color: {PANEL}; border-bottom: 1px solid {BORDER};"
+            f"QFrame {{" f"background-color: {PANEL}; border-bottom: 1px solid {BORDER};" f"}}"
         )
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 0, 12, 0)
@@ -52,12 +52,12 @@ class ColHeader(QFrame):
         text_box.setSpacing(7)
         lbl = QLabel(label.upper())
         lbl.setStyleSheet(
-            f"color: {TEXT3}; font-size: 9.5px; font-weight: 700; letter-spacing: 1px;"
+            f"color: {TEXT3}; font-size: 16px; font-weight: 700; letter-spacing: 1px;"
         )
         text_box.addWidget(lbl)
         if sub:
             sub_lbl = QLabel(sub)
-            sub_lbl.setStyleSheet(f"color: {MUTED}; font-size: 8.5px;")
+            sub_lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px;")
             text_box.addWidget(sub_lbl)
         layout.addLayout(text_box)
         layout.addStretch()
@@ -86,7 +86,7 @@ class Placeholder(QWidget):
 
         title_lbl = QLabel(title)
         title_lbl.setStyleSheet(
-            f"color: {TEXT3}; font-size: 13px; font-weight: 600;"
+            f"color: {TEXT3}; font-size: 17px; font-weight: 600;"
         )
         title_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -95,7 +95,7 @@ class Placeholder(QWidget):
 
         if note:
             note_lbl = QLabel(note)
-            note_lbl.setStyleSheet(f"color: {MUTED}; font-size: 10px;")
+            note_lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px;")
             note_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(note_lbl)
 
@@ -120,7 +120,7 @@ class NavTabButton(QPushButton):
                 QPushButton {{
                     background-color: {PRIMARY}; color: white;
                     border-style: none; border-radius: {TAB_PILL_RADIUS}px;
-                    padding: 0px 16px; font-size: 12.5px; font-weight: 600;
+                    padding: 0px 16px; font-size: 17px; font-weight: 600;
                 }}
             """)
         else:
@@ -128,7 +128,7 @@ class NavTabButton(QPushButton):
                 QPushButton {{
                     background-color: transparent; color: {TEXT3};
                     border-style: none; border-radius: {TAB_PILL_RADIUS}px;
-                    padding: 0px 16px; font-size: 12.5px;
+                    padding: 0px 16px; font-size: 17px;
                 }}
                 QPushButton:hover {{ background-color: {PANEL2}; color: {TEXT2}; }}
             """)
@@ -157,7 +157,7 @@ class ModulePill(QPushButton):
                 QPushButton {{
                     background-color: {PRIMARY}; color: white;
                     border-style: none; border-radius: {MODULE_PILL_RADIUS}px;
-                    padding: 0px 14px; font-size: 12px; font-weight: 600;
+                    padding: 0px 14px; font-size: 17px; font-weight: 600;
                 }}
             """)
         else:
@@ -165,7 +165,7 @@ class ModulePill(QPushButton):
                 QPushButton {{
                     background-color: transparent; color: {TEXT3};
                     border-style: none; border-radius: {MODULE_PILL_RADIUS}px;
-                    padding: 0px 14px; font-size: 12px;
+                    padding: 0px 14px; font-size: 17px;
                 }}
                 QPushButton:disabled {{ color: {MUTED}; }}
                 QPushButton:hover:!disabled {{ color: {TEXT2}; }}
@@ -226,17 +226,17 @@ def fail_warn_badges(n_fail: int, n_warn: int) -> QWidget:
     if n_fail > 0:
         lbl = QLabel(f"{n_fail} FAIL")
         lbl.setStyleSheet(
-            f"background-color: rgba(224,82,82,.12); color: {DANGER}; "
+            f"QWidget {{" f"background-color: rgba(224,82,82,.12); color: {DANGER}; "
             f"border: 1px solid rgba(224,82,82,.3); border-radius: 999px; "
-            f"padding: 2px 7px; font-size: 8.5px; font-weight: 700;"
+            f"padding: 2px 7px; font-size: 16px; font-weight: 700;" f"}}"
         )
         layout.addWidget(lbl)
     if n_warn > 0:
         lbl = QLabel(f"{n_warn} WARN")
         lbl.setStyleSheet(
-            f"background-color: rgba(217,142,0,.12); color: {WARNING}; "
+            f"QWidget {{" f"background-color: rgba(217,142,0,.12); color: {WARNING}; "
             f"border: 1px solid rgba(217,142,0,.3); border-radius: 999px; "
-            f"padding: 2px 7px; font-size: 8.5px; font-weight: 700;"
+            f"padding: 2px 7px; font-size: 16px; font-weight: 700;" f"}}"
         )
         layout.addWidget(lbl)
     return box

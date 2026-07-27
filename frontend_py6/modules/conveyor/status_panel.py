@@ -84,7 +84,7 @@ class _HealthTile(QFrame):
 
         self._label_lbl = QLabel("")
         self._label_lbl.setStyleSheet(
-            f"color: {TEXT3}; font-size: 9px; font-weight: 700; "
+            f"color: {TEXT3}; font-size: 16px; font-weight: 700; "
             f"letter-spacing: .5px; text-transform: uppercase;"
         )
         self._label_lbl.setWordWrap(True)
@@ -92,13 +92,13 @@ class _HealthTile(QFrame):
 
         self._value_lbl = QLabel("")
         self._value_lbl.setStyleSheet(
-            f"color: {TEXT}; font-size: 12px; font-weight: 800; "
+            f"color: {TEXT}; font-size: 17px; font-weight: 800; "
             f"font-family: 'Consolas', monospace;"
         )
         lay.addWidget(self._value_lbl)
 
         self._req_lbl = QLabel("")
-        self._req_lbl.setStyleSheet(f"color: {MUTED}; font-size: 8.5px;")
+        self._req_lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px;")
         self._req_lbl.setWordWrap(True)
         lay.addWidget(self._req_lbl)
 
@@ -109,7 +109,7 @@ class _HealthTile(QFrame):
 
         color = SUCCESS if ok else (DANGER if ok is False else TEXT3)
         self._value_lbl.setStyleSheet(
-            f"color: {color}; font-size: 12px; font-weight: 800; "
+            f"color: {color}; font-size: 17px; font-weight: 800; "
             f"font-family: 'Consolas', monospace;"
         )
         border_color = color if ok is not None else BORDER
@@ -149,19 +149,19 @@ class StatusPanel(QWidget):
         hl.setSpacing(6)
 
         icon = QLabel("🏥")
-        icon.setStyleSheet("font-size: 13px;")
+        icon.setStyleSheet("font-size: 17px;")
         hl.addWidget(icon)
 
         title = QLabel("DESIGN HEALTH")
         title.setStyleSheet(
-            f"color: {TEXT3}; font-size: 9.5px; font-weight: 700; letter-spacing: 1px;"
+            f"color: {TEXT3}; font-size: 16px; font-weight: 700; letter-spacing: 1px;"
         )
         hl.addWidget(title)
         hl.addStretch()
 
         self._status_badge = QLabel("—")
         self._status_badge.setStyleSheet(
-            f"QWidget {{" f"color: {TEXT3}; font-size: 9.5px; font-weight: 700; "
+            f"QWidget {{" f"color: {TEXT3}; font-size: 16px; font-weight: 700; "
             f"background: rgba(0,0,0,.3); border-radius: 10px; "
             f"padding: 3px 10px; border: 1px solid {BORDER};" f"}}"
         )
@@ -293,14 +293,14 @@ class StatusPanel(QWidget):
         if n_fail > 0:
             self._status_badge.setText(f"⛔ {n_fail} Critical")
             self._status_badge.setStyleSheet(
-            f"QWidget {{" f"color: {DANGER}; font-size: 9.5px; font-weight: 700; "
+            f"QWidget {{" f"color: {DANGER}; font-size: 16px; font-weight: 700; "
                 f"background: rgba(0,0,0,.3); border-radius: 10px; "
                 f"padding: 3px 10px; border: 1px solid {DANGER};" f"}}"
         )
         else:
             self._status_badge.setText("✅ Design OK")
             self._status_badge.setStyleSheet(
-            f"QWidget {{" f"color: {SUCCESS}; font-size: 9.5px; font-weight: 700; "
+            f"QWidget {{" f"color: {SUCCESS}; font-size: 16px; font-weight: 700; "
                 f"background: rgba(0,0,0,.3); border-radius: 10px; "
                 f"padding: 3px 10px; border: 1px solid {SUCCESS};" f"}}"
         )

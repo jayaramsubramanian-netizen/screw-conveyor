@@ -85,7 +85,7 @@ class EquipmentTree(QWidget):
         self._tree.setStyleSheet(f"""
             QTreeWidget {{
                 background-color: {PANEL}; border: 1px solid {BORDER};
-                border-radius: 7px; color: {TEXT}; font-size: 11px;
+                border-radius: 7px; color: {TEXT}; font-size: 16px;
                 outline: none; padding: 4px;
             }}
             QTreeWidget::item {{ padding: 4px 2px; border-radius: 4px; }}
@@ -116,7 +116,7 @@ class EquipmentTree(QWidget):
             "Session only — project save is not yet available on the backend."
         )
         note.setWordWrap(True)
-        note.setStyleSheet(f"color: {TEXT3}; font-size: 8.5px; border: none;")
+        note.setStyleSheet(f"color: {TEXT3}; font-size: 16px; border: none;")
         layout.addWidget(note)
 
     #: Emitted when Capture is pressed; the workspace supplies the payload.
@@ -133,7 +133,7 @@ class EquipmentTree(QWidget):
             QPushButton {{
                 background-color: {BG}; color: {colour};
                 border: 1px solid {colour}66; border-radius: 4px;
-                font-size: 10px; font-weight: 700;
+                font-size: 16px; font-weight: 700;
             }}
             QPushButton:hover:enabled {{ background-color: {colour}22; }}
             QPushButton:disabled {{ color: {TEXT3}; border: 1px solid {BORDER}; }}
@@ -202,7 +202,7 @@ class EquipmentTree(QWidget):
         menu = QMenu(self)
         menu.setStyleSheet(
             f"QMenu {{ background-color: {PANEL2}; color: {TEXT}; "
-            f"border: 1px solid {BORDER}; font-size: 11px; }}"
+            f"border: 1px solid {BORDER}; font-size: 16px; }}"
             f"QMenu::item:selected {{ background-color: {PRIMARY}; }}"
         )
         act_dup = QAction("Duplicate", self)

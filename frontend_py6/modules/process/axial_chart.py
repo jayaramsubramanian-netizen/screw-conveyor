@@ -81,7 +81,7 @@ class AxialChart(QFrame):
 
         title = QLabel(f"{label} AXIAL PROFILE".upper())
         title.setStyleSheet(
-            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 9px; font-weight: 700; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 16px; font-weight: 700; "
             f"letter-spacing: 0.10em; border: none; "
             f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
@@ -99,7 +99,7 @@ class AxialChart(QFrame):
             axis = self._plot.getAxis(axis_name)
             axis.setPen(pg.mkPen(BORDER))
             axis.setTextPen(pg.mkPen(MUTED))
-            axis.setLabel(text, **{"color": MUTED, "font-size": "8pt"})
+            axis.setLabel(text, **{"color": MUTED, "font-size": "12pt"})
 
         self._curve = self._plot.plot(
             [], [], pen=pg.mkPen(color, width=2),

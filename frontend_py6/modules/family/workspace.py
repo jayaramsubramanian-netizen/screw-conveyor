@@ -144,7 +144,7 @@ class _ChipRow(QWidget):
             QPushButton {{
                 background-color: {BG}; color: {MUTED};
                 border: 1px solid {BORDER}; border-radius: 3px;
-                font-size: 9px; font-family: 'JetBrains Mono', monospace;
+                font-size: 16px; font-family: 'JetBrains Mono', monospace;
             }}
             QPushButton:checked {{
                 background-color: {PROCESS_ACCENT}; color: #ffffff;
@@ -215,14 +215,14 @@ class FamilyWorkspace(ModuleWorkspace):
         )
         title = QLabel("FAMILY DESIGNER")
         title.setStyleSheet(
-            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 12px; font-weight: 800; "
+            f"QFrame {{" f"color: {PROCESS_ACCENT}; font-size: 17px; font-weight: 800; "
             f"letter-spacing: 0.08em; border: none; "
             f"font-family: 'Barlow Condensed', sans-serif;" f"}}"
         )
         sub = QLabel("D × L × N sweep · capacity, energy, cost, life")
         sub.setWordWrap(True)
         sub.setStyleSheet(
-            f"QFrame {{" f"color: {MUTED}; font-size: 9px; border: none;" f"}}"
+            f"QFrame {{" f"color: {MUTED}; font-size: 16px; border: none;" f"}}"
         )
         for w in (icon, title, sub):
             layout.addWidget(w)
@@ -261,7 +261,7 @@ class FamilyWorkspace(ModuleWorkspace):
             QPushButton {{
                 background-color: {BG}; color: {TEXT2};
                 border: 1px solid {BORDER}; border-radius: 5px;
-                font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+                font-size: 16px; font-weight: 700; letter-spacing: 0.06em;
             }}
             QPushButton:hover:enabled {{ border: 1px solid {PRIMARY}; color: {TEXT}; }}
             QPushButton:disabled {{ color: {TEXT3}; }}
@@ -292,7 +292,7 @@ class FamilyWorkspace(ModuleWorkspace):
 
         self._summary = QLabel("No family generated yet.")
         self._summary.setStyleSheet(
-            f"QFrame {{" f"color: {MUTED}; font-size: 10px; border: none;" f"}}"
+            f"QFrame {{" f"color: {MUTED}; font-size: 16px; border: none;" f"}}"
         )
         layout.addWidget(self._summary)
 
@@ -312,12 +312,12 @@ class FamilyWorkspace(ModuleWorkspace):
             QTableWidget {{
                 background-color: {PANEL}; border: 1px solid {BORDER};
                 border-radius: 8px; gridline-color: {BORDER};
-                color: {TEXT}; font-size: 10px;
+                color: {TEXT}; font-size: 16px;
             }}
             QHeaderView::section {{
                 background-color: {BG}; color: #93c5fd;
                 border: none; border-bottom: 2px solid {BORDER};
-                padding: 5px 8px; font-size: 9px; font-weight: 700;
+                padding: 5px 8px; font-size: 16px; font-weight: 700;
             }}
             QTableWidget::item:selected {{
                 background-color: rgba(74,158,255,0.18); color: {TEXT};
@@ -335,7 +335,7 @@ class FamilyWorkspace(ModuleWorkspace):
             QPushButton {{
                 background-color: {PROCESS_ACCENT}; color: #ffffff;
                 border: none; border-radius: 5px;
-                font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+                font-size: 16px; font-weight: 800; letter-spacing: 0.06em;
             }}
             QPushButton:disabled {{ background-color: {BORDER}; color: {TEXT3}; }}
         """)

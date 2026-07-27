@@ -228,12 +228,12 @@ class ScrewViz2D(QWidget):
         hl.setSpacing(8)
 
         icon = QLabel("📐")
-        icon.setStyleSheet("font-size: 13px;")
+        icon.setStyleSheet("font-size: 17px;")
         hl.addWidget(icon)
 
         title_lbl = QLabel(self._title.upper())
         title_lbl.setStyleSheet(
-            f"color: {TEXT3}; font-size: 10px; font-weight: 700; letter-spacing: 1px;"
+            f"color: {TEXT3}; font-size: 16px; font-weight: 700; letter-spacing: 1px;"
         )
         hl.addWidget(title_lbl)
 
@@ -241,7 +241,7 @@ class ScrewViz2D(QWidget):
         self._live_badge.setStyleSheet(
             f"QWidget {{" f"background-color: rgba(31,184,110,.15); color: {SUCCESS}; "
             f"border: 1px solid {SUCCESS}; border-radius: 3px; "
-            f"padding: 0px 5px; font-size: 9px; font-weight: 700;" f"}}"
+            f"padding: 0px 5px; font-size: 16px; font-weight: 700;" f"}}"
         )
         self._live_badge.setVisible(False)
         hl.addWidget(self._live_badge)
@@ -296,7 +296,7 @@ class ScrewViz2D(QWidget):
         reset_btn.setToolTip("Reset pan/zoom")
         reset_btn.setStyleSheet(
             f"QPushButton {{ background: transparent; color: {TEXT3}; "
-            f"border: 1px solid {BORDER}; border-radius: 5px; font-size: 11px; }}"
+            f"border: 1px solid {BORDER}; border-radius: 5px; font-size: 16px; }}"
             f"QPushButton:hover {{ color: {TEXT2}; }}"
         )
         reset_btn.clicked.connect(lambda: self._canvas.reset_view())
@@ -320,18 +320,18 @@ class ScrewViz2D(QWidget):
         fl.setContentsMargins(10, 0, 10, 0)
 
         hint = QLabel("🖱 Scroll to zoom · Drag to pan · ⌂ Reset")
-        hint.setStyleSheet(f"color: #2a4060; font-size: 8.5px;")
+        hint.setStyleSheet(f"color: #2a4060; font-size: 16px;")
         fl.addWidget(hint)
         fl.addStretch()
 
         self._telemetry_lbl = QLabel("")
         self._telemetry_lbl.setStyleSheet(
-            f"color: {SUCCESS}; font-size: 8.5px; font-family: 'Consolas', monospace;"
+            f"color: {SUCCESS}; font-size: 16px; font-family: 'Consolas', monospace;"
         )
         fl.addWidget(self._telemetry_lbl)
 
         self._zoom_lbl = QLabel("zoom 1.00×")
-        self._zoom_lbl.setStyleSheet(f"color: #2a4060; font-size: 8.5px; padding-left: 10px;")
+        self._zoom_lbl.setStyleSheet(f"color: #2a4060; font-size: 16px; padding-left: 10px;")
         fl.addWidget(self._zoom_lbl)
 
         outer.addWidget(footer)
@@ -351,7 +351,7 @@ class ScrewViz2D(QWidget):
                 QPushButton {{
                     background-color: rgba(31,184,110,.12); color: {SUCCESS};
                     border: 1px solid {SUCCESS}; border-radius: 5px;
-                    padding: 0px 10px; font-size: 11px; font-weight: 800;
+                    padding: 0px 10px; font-size: 16px; font-weight: 800;
                 }}
             """)
         else:
@@ -360,7 +360,7 @@ class ScrewViz2D(QWidget):
                 QPushButton {{
                     background-color: rgba(232,160,0,.12); color: {ACCENT};
                     border: 1px solid {ACCENT}; border-radius: 5px;
-                    padding: 0px 10px; font-size: 11px; font-weight: 800;
+                    padding: 0px 10px; font-size: 16px; font-weight: 800;
                 }}
             """)
 
@@ -370,7 +370,7 @@ class ScrewViz2D(QWidget):
             btn.setStyleSheet(
                 f"QPushButton {{ background-color: {'rgba(232,160,0,.18)' if active else 'transparent'}; "
                 f"color: {ACCENT if active else TEXT3}; border: none; "
-                f"padding: 0px 7px; font-size: 9px; font-weight: 700; }}"
+                f"padding: 0px 7px; font-size: 16px; font-weight: 700; }}"
             )
 
     def _style_view_buttons(self) -> None:
@@ -381,7 +381,7 @@ class ScrewViz2D(QWidget):
                     background-color: {'rgba(232,160,0,.12)' if active else 'transparent'};
                     color: {ACCENT if active else TEXT3};
                     border: 1px solid {ACCENT if active else BORDER};
-                    border-radius: 5px; padding: 0px 10px; font-size: 10px; font-weight: 700;
+                    border-radius: 5px; padding: 0px 10px; font-size: 16px; font-weight: 700;
                 }}
             """)
 
