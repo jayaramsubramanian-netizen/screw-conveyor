@@ -276,6 +276,7 @@ class InputSidebarPanel(QWidget):
     """
 
     calculate = Signal(dict)
+    copy_design_requested = Signal()
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -493,6 +494,20 @@ class InputSidebarPanel(QWidget):
         calc_btn.setStyleSheet(_CALC_BTN_QSS)
         calc_btn.clicked.connect(self._emit_calculate)
         outer.addWidget(calc_btn)
+
+        # Copy the full design (inputs + results) as JSON, for review or bug
+        # reports — see modules/conveyor/design_export.py.
+        copy_btn = QPushButton("⧉  Copy Design JSON")
+        copy_btn.setFixedHeight(30)
+        copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        copy_btn.setStyleSheet(
+            f"QPushButton {{ background-color: {BG}; color: {TEXT}; "
+            f"border: 1px solid {BORDER}; border-radius: 5px; "
+            f"font-size: 16px; }} "
+            f"QPushButton:hover {{ border: 1px solid {ACCENT}; }}"
+        )
+        copy_btn.clicked.connect(self.copy_design_requested)
+        outer.addWidget(copy_btn)
 
         # ── Wire change signals ───────────────────────────────────────────
         self._wire_signals()

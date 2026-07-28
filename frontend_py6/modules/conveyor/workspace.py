@@ -135,6 +135,7 @@ class ConveyorWorkspace(ModuleWorkspace):
         c2.addWidget(ColHeader("Parameters", "CEMA 7th Ed."))
         self._sidebar = InputSidebarPanel()
         self._sidebar.calculate.connect(self._on_sidebar_calculate)
+        self._sidebar.copy_design_requested.connect(self._on_copy_design)
         c2.addWidget(self._sidebar)
 
         # col3 — tab stack
@@ -363,6 +364,16 @@ class ConveyorWorkspace(ModuleWorkspace):
         self._col3_header = new_header
 
     # ── equipment tree ────────────────────────────────────────────────────
+
+    def _on_copy_design(self) -> None:
+        """Put a full design snapshot (inputs + results) on the clipboard."""
+        from PySide6.QtWidgets import QApplication
+        from .design_export import to_json
+        payload = self._sidebar.get_payload()
+        text = to_json(payload, self._last_results or {})
+        clip = QApplication.clipboard()
+        if clip is not None:
+            clip.setText(text)
 
     def _on_capture(self) -> None:
         """Snapshot the sidebar's current inputs alongside the latest

@@ -84,10 +84,33 @@ _PHASE_ORDER = ["geometry", "pitch", "drive"]
 
 
 def _score_candidate(result: dict, goals: list[str]) -> float:
-    """Weighted-sum score — equal weight among selected goals. Matches
-    scoreCandidate() in AutoOptModal exactly."""
+    """
+    Weighted-sum score for RANKING feasible candidates.
+
+    Capacity is a hard gate, not a weighted term. The engine's eff.score
+    rises as a screw runs emptier — a design moving 7 t/h against a 30 t/h
+    requirement scores ~95 on efficiency alone — so a naive weighted sum
+    ranks a grossly undersized conveyor above a correctly sized one. That is
+    the "7.2 t/h at 98%" result.
+
+    A design that does not meet required capacity is not a worse solution to
+    the same problem; it is a solution to a different, smaller problem. It
+    scores 0 here regardless of how efficient it looks. Ranking only ever
+    orders designs that actually do the job.
+    """
     if not result or result.get("error"):
         return 0.0
+
+    cap = result.get("cap", {}) or {}
+    # Hard capacity gate. cap.ok already means "meets required throughput
+    # including surge"; fall back to a direct Qt≥req check if ok is absent.
+    meets = cap.get("ok")
+    if meets is None:
+        qt, req = cap.get("Qt"), cap.get("req")
+        meets = qt is not None and req is not None and qt >= req
+    if not meets:
+        return 0.0
+
     eff = result.get("eff", {}) or {}
     cost = result.get("cost", {}) or {}
     wear = result.get("wear", {}) or {}
@@ -354,7 +377,38 @@ class _OptimizerWorker(QObject):
         sorted_c = sorted(candidates, key=lambda c: -c["score"])
         partial = None
         if not candidates and trials:
-            partial = sorted(trials, key=lambda c: -c["score"])[0]
+            # No feasible design found. Surface the CLOSEST attempt as a
+            # diagnostic, not a recommendation — and rank "closest" by how
+            # near it came to the required capacity, not by _score_candidate
+            # (which now returns 0 for every infeasible design anyway, and
+            # previously picked the emptiest screw). This is what stops a
+            # 7 t/h design being shown as the answer to a 30 t/h request.
+            req = self._base.get("cap") or 0
+
+            def _cap_gap(c: dict) -> float:
+                qt = ((c.get("r") or {}).get("cap") or {}).get("Qt") or 0
+                return abs((req or qt) - qt)
+
+            nearest = min(trials, key=_cap_gap)
+            nr = nearest.get("r") or {}
+            ncap = (nr.get("cap") or {})
+            reasons = []
+            if ncap.get("ok") is False or (ncap.get("Qt") or 0) < req:
+                reasons.append(
+                    f"under capacity ({(ncap.get('Qt') or 0):.1f} of "
+                    f"{req:.0f} t/h required)"
+                )
+            if (nr.get("tor") or {}).get("shOk") is False:
+                reasons.append("shaft over-stressed")
+            if nr.get("deflection_ok") is False:
+                reasons.append("shaft deflection exceeded")
+            if (nr.get("gbx_r") or {}).get("tOk") is False:
+                reasons.append("gearbox torque exceeded")
+            if (nr.get("brg_r") or {}).get("ok") is False:
+                reasons.append("bearing life below target")
+            partial = {**nearest, "infeasible": True,
+                       "reasons": reasons or ["does not meet all design checks"]}
+
         top_n = 6 if self._phase == "geometry" else 5
         self.finished.emit({
             "top": sorted_c[:top_n],
@@ -777,12 +831,31 @@ class AutoOptimizerPanel(QWidget):
             self._content_layout.addWidget(note)
 
         if feasible == 0 and pr.get("partial"):
-            partial_hdr = QLabel("🔍 Best Partial — apply as starting point, refine manually:")
-            partial_hdr.setStyleSheet(
-                f"color: {WARNING}; font-size: 16px; font-weight: 700; padding-top: 4px;"
+            partial = pr["partial"]
+            reasons = partial.get("reasons") or []
+            banner = QLabel(
+                "⚠ NO FEASIBLE DESIGN FOUND\n"
+                "No geometry in the search met the requirement. The closest "
+                "attempt is shown below as a diagnostic — it does NOT meet "
+                "the design checks and must not be used as-is:\n"
+                + "\n".join(f"   • {r}" for r in reasons)
             )
-            self._content_layout.addWidget(partial_hdr)
-            self._add_candidate_card(pr["partial"], 0, is_top=False)
+            banner.setWordWrap(True)
+            banner.setStyleSheet(
+                f"color: {DANGER}; font-size: 16px; font-weight: 700; "
+                f"background-color: rgba(224,82,82,0.10); "
+                f"border: 1px solid {DANGER}; border-radius: 6px; "
+                f"padding: 8px 12px;"
+            )
+            self._content_layout.addWidget(banner)
+            hint = QLabel(
+                "Most often this means the drive or bearing is too small for "
+                "this duty. Try a larger gearbox/bearing, then re-run."
+            )
+            hint.setWordWrap(True)
+            hint.setStyleSheet(f"color: {TEXT}; font-size: 16px; padding: 2px 4px;")
+            self._content_layout.addWidget(hint)
+            self._add_candidate_card(partial, 0, is_top=False)
 
         for i, c in enumerate(pr.get("top", [])):
             self._add_candidate_card(c, i, is_top=(i == 0))
