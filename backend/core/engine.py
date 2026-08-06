@@ -473,6 +473,35 @@ def calc_engine(inp: dict, mat: dict, brg: dict, gbx: dict, lam_factor: float = 
     )
     P_eff = mp["P_eff"]
 
+    # ── Pitch efficiency (CEMA) ──────────────────────────────────
+    # Capacity is NOT linear in pitch beyond full pitch (P = D). Standard
+    # pitch (P/D = 1.0) is the CEMA reference at 100% conveying efficiency.
+    # Beyond that, throughput rises less than proportionally: the material
+    # is lifted at a steeper helix angle and an increasing fraction tumbles
+    # back over the flight instead of advancing. Below full pitch the flow
+    # stays essentially proportional (short-pitch screws are a standard,
+    # well-behaved configuration).
+    #
+    # Modelled as a factor applied to the pitch term:
+    #   P/D ≤ 1.0     → 1.00               (proportional, no penalty)
+    #   1.0 < P/D     → 1 - 0.5·(P/D - 1)  (linear falloff of the EXCESS)
+    # so at P/D = 1.25 the excess 0.25 of pitch contributes at ~87.5%, and
+    # at P/D = 1.5 (a full half-pitch over) at 75%. This removes the
+    # optimiser's ability to hit target capacity for free by stretching
+    # pitch instead of raising speed, while leaving standard and short-pitch
+    # screws unchanged. Applied per-zone so multi-pitch inlets/outlets each
+    # get their own correction.
+    def _pitch_eff(pitch: float) -> float:
+        pd = pitch / D if D > 0 else 1.0
+        if pd <= 1.0:
+            return 1.0
+        return max(0.5, 1.0 - 0.5 * (pd - 1.0))
+
+    pe_body = _pitch_eff(P)
+    pe_in   = _pitch_eff(inp.get("P_in") or P)
+    pe_out  = _pitch_eff(inp.get("P_out") or P)
+    pe_eff  = _pitch_eff(P_eff)
+
     # ── λ dynamic (clamped) ─────────────────────────────────────
     lam_raw = calc_lambda(mat)
     lam_dynamic = min(lam_raw, (mat.get("lambda_ref") or 1.0) * 1.40)
@@ -482,9 +511,9 @@ def calc_engine(inp: dict, mat: dict, brg: dict, gbx: dict, lam_factor: float = 
     # η_L (loading efficiency) is a POWER correction, NOT a capacity reduction.
     # Removing η_L from capacity makes engine match HTML prototype exactly.
     _zBase = (math.pi / 4) * D**2 * N * active_fill * 60 * mat["rho"]
-    Qt_body   = _zBase * P
-    Qt_inlet  = _zBase * (inp.get("P_in") or P) if use_mp else Qt_body
-    Qt_outlet = _zBase * (inp.get("P_out") or P) if use_mp else Qt_body
+    Qt_body   = _zBase * P * pe_body
+    Qt_inlet  = _zBase * (inp.get("P_in") or P) * pe_in if use_mp else Qt_body
+    Qt_outlet = _zBase * (inp.get("P_out") or P) * pe_out if use_mp else Qt_body
     Qt_governing = min(Qt_body, Qt_inlet, Qt_outlet)
 
     # ── Feed-limited fill ────────────────────────────────────────
@@ -494,7 +523,7 @@ def calc_engine(inp: dict, mat: dict, brg: dict, gbx: dict, lam_factor: float = 
 
     # ── Pipe transport derating ──────────────────────────────────
     pipe_derate = 0.88 if is_pipe else 1.0
-    Qv  = (math.pi / 4) * D**2 * P_eff * N * fill_actual * eta_L * 60 * pipe_derate
+    Qv  = (math.pi / 4) * D**2 * P_eff * pe_eff * N * fill_actual * eta_L * 60 * pipe_derate
     Qt_raw = Qv * mat["rho"]
 
     # ── D-04 FINAL: Slip factor — v_axial ideal (capacity); t_res slip-corrected ─

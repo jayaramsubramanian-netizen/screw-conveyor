@@ -19,13 +19,13 @@ from datetime import datetime, timezone
 from typing import Any
 
 
-# The sidebar keys the optimiser holds FIXED while it varies D/N/P. Surfaced
-# explicitly so a reviewer can see what baseline a geometry search inherited
-# — a mismatch here is a prime suspect when the optimiser "won't converge"
-# on a design the user found by hand.
+# The sidebar keys the optimiser holds FIXED while it varies D/N/P. These are
+# the ACTUAL engine key names (verified against sidebar.py), not friendly
+# aliases — shtype/pod/pwall/support_cond, NOT shaft_type/OD/wall/supports.
+# A mismatch here shows null for populated fields and misleads a review.
 _OPTIMIZER_FIXED_KEYS = [
-    "shaft_mode", "shaft_type", "OD", "wall", "sallow", "supports",
-    "brg", "gbx", "hangers", "bload", "duty",
+    "shaft_mode", "shtype", "pod", "pwall", "sallow", "support_cond",
+    "brg", "gbx", "hangers", "bload", "duty", "ft", "wa", "temp_c",
 ]
 
 # The three the optimiser is allowed to move in Phase 1.
