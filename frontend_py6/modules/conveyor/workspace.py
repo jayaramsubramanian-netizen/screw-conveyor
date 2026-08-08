@@ -121,10 +121,8 @@ class ConveyorWorkspace(ModuleWorkspace):
         c1 = QVBoxLayout(self._col1)
         c1.setContentsMargins(0, 0, 0, 0)
         c1.setSpacing(0)
-        c1.addWidget(ColHeader("Equipment", "Session"))
+        c1.addWidget(ColHeader("Equipment", "SC-001"))
         self._equipment = EquipmentTree()
-        self._equipment.capture_requested.connect(self._on_capture)
-        self._equipment.load_requested.connect(self._on_load_equipment)
         c1.addWidget(self._equipment)
 
         # col2 — input sidebar
@@ -279,6 +277,7 @@ class ConveyorWorkspace(ModuleWorkspace):
                 self._results_panel.set_data(results, multi)
 
         self._status_panel.set_data(results, payload)
+        self._equipment.set_data(results, payload)
 
         # Detail tabs read the same design result. Stash D so the structural
         # panel can compute the .tsx's recommended-bearing string, which is a
@@ -374,16 +373,6 @@ class ConveyorWorkspace(ModuleWorkspace):
         clip = QApplication.clipboard()
         if clip is not None:
             clip.setText(text)
-
-    def _on_capture(self) -> None:
-        """Snapshot the sidebar's current inputs alongside the latest
-        results, so the tree entry shows the capacity it achieved."""
-        self._equipment.add_item(self._sidebar.get_payload(), self._last_results)
-
-    def _on_load_equipment(self, payload: dict) -> None:
-        """Selecting an item restores its inputs and recalculates."""
-        self._sidebar.set_payload(payload)
-        self.run_calculation(self._sidebar.get_payload())
 
     # ── cross-module exchange ─────────────────────────────────────────────
 

@@ -34,7 +34,7 @@ from typing import Optional, Any
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame,
-    QScrollArea,
+    QScrollArea, QPushButton,
 )
 from PySide6.QtCore import Qt
 
@@ -60,9 +60,15 @@ def _fi(val: Any, fallback: str = "—") -> str:
 
 class _HealthTile(QFrame):
     """
-    Single check tile — label (top), value (bold, colour-coded), req
-    (bottom, muted). Matches the CalcPage.tsx grid tile exactly:
-    background rgba(0,0,0,.25), 1px border tinted to the status colour.
+    Single design-health tile: label, colour-coded value, requirement, and
+    an expandable governing-equation panel.
+
+    Matches the reference design health card: no nested borders (one border
+    on the tile, scoped by objectName so it does not cascade to the labels
+    inside), and a SHOW/HIDE FORMULA toggle that reveals the governing
+    equation with the actual numbers substituted — so the card shows not
+    just the value and its pass/fail state, but the engineering basis for
+    it. The formula stays collapsed by default to keep the column compact.
     """
 
     #: Scoped by objectName, NOT by type. A `QFrame{...}` selector also
@@ -74,49 +80,98 @@ class _HealthTile(QFrame):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setObjectName(self._OBJ)
-        self.setStyleSheet(
-            f"#{self._OBJ} {{ background-color: rgba(0,0,0,.25); "
-            f"border-radius: 7px; }}"
-        )
+        self._apply_border(BORDER)
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(9, 7, 9, 7)
-        lay.setSpacing(2)
+        lay.setContentsMargins(10, 8, 10, 8)
+        lay.setSpacing(3)
 
         self._label_lbl = QLabel("")
         self._label_lbl.setStyleSheet(
-            f"color: {TEXT3}; font-size: 16px; font-weight: 700; "
-            f"letter-spacing: .5px; text-transform: uppercase;"
+            f"color: {TEXT}; font-size: 16px; font-weight: 700; "
+            f"letter-spacing: .5px; text-transform: uppercase; border: none;"
         )
         self._label_lbl.setWordWrap(True)
         lay.addWidget(self._label_lbl)
 
         self._value_lbl = QLabel("")
         self._value_lbl.setStyleSheet(
-            f"color: {TEXT}; font-size: 17px; font-weight: 800; "
-            f"font-family: 'Consolas', monospace;"
+            f"color: {TEXT}; font-size: 20px; font-weight: 800; "
+            f"font-family: 'Consolas', monospace; border: none;"
         )
         lay.addWidget(self._value_lbl)
 
         self._req_lbl = QLabel("")
-        self._req_lbl.setStyleSheet(f"color: {MUTED}; font-size: 16px;")
+        self._req_lbl.setStyleSheet(
+            f"color: {TEXT}; font-size: 16px; border: none;"
+        )
         self._req_lbl.setWordWrap(True)
         lay.addWidget(self._req_lbl)
 
-    def set_check(self, label: str, value: str, req: str, ok: Optional[bool]) -> None:
+        # Formula toggle — hidden until a formula is supplied.
+        self._toggle = QPushButton("▸ SHOW FORMULA")
+        self._toggle.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._toggle.setStyleSheet(
+            f"QPushButton {{ color: {ACCENT}; font-size: 16px; "
+            f"font-weight: 700; border: none; background: transparent; "
+            f"text-align: left; padding: 2px 0; }} "
+            f"QPushButton:hover {{ color: {TEXT}; }}"
+        )
+        self._toggle.clicked.connect(self._toggle_formula)
+        lay.addWidget(self._toggle)
+
+        self._formula_lbl = QLabel("")
+        self._formula_lbl.setWordWrap(True)
+        self._formula_lbl.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse
+        )
+        self._formula_lbl.setStyleSheet(
+            f"color: {TEXT}; font-size: 16px; "
+            f"font-family: 'Consolas', monospace; "
+            f"background: rgba(0,0,0,.30); border-radius: 5px; "
+            f"padding: 7px 9px; border: none;"
+        )
+        self._formula_lbl.setVisible(False)
+        lay.addWidget(self._formula_lbl)
+
+    def _apply_border(self, colour: str) -> None:
+        self.setStyleSheet(
+            f"#{self._OBJ} {{ background-color: rgba(0,0,0,.25); "
+            f"border-radius: 7px; border: 1px solid {colour}; }}"
+        )
+
+    def _toggle_formula(self) -> None:
+        shown = not self._formula_lbl.isVisible()
+        self._formula_lbl.setVisible(shown)
+        self._toggle.setText("▾ HIDE FORMULA" if shown else "▸ SHOW FORMULA")
+
+    def set_check(
+        self,
+        label: str,
+        value: str,
+        req: str,
+        ok: Optional[bool],
+        formula: str = "",
+    ) -> None:
         self._label_lbl.setText(label)
         self._value_lbl.setText(value)
         self._req_lbl.setText(req)
 
-        color = SUCCESS if ok else (DANGER if ok is False else TEXT3)
+        color = SUCCESS if ok else (DANGER if ok is False else TEXT)
         self._value_lbl.setStyleSheet(
-            f"color: {color}; font-size: 17px; font-weight: 800; "
-            f"font-family: 'Consolas', monospace;"
+            f"color: {color}; font-size: 20px; font-weight: 800; "
+            f"font-family: 'Consolas', monospace; border: none;"
         )
-        border_color = color if ok is not None else BORDER
-        self.setStyleSheet(
-            f"#{self._OBJ} {{ background-color: rgba(0,0,0,.25); "
-            f"border-radius: 7px; border: 1px solid {border_color}44; }}"
-        )
+        # Border tint follows status; neutral grey for informational tiles.
+        # The 44 alpha suffix keeps it subtle, matching the reference.
+        self._apply_border(f"{color}66" if ok is not None else BORDER)
+
+        has_formula = bool(formula)
+        self._toggle.setVisible(has_formula)
+        if has_formula:
+            self._formula_lbl.setText(formula)
+        else:
+            self._formula_lbl.setVisible(False)
+            self._toggle.setText("▸ SHOW FORMULA")
 
 
 class StatusPanel(QWidget):
@@ -128,7 +183,10 @@ class StatusPanel(QWidget):
         the Shaft Stress tile's requirement text (inp.sallow).
     """
 
-    _N_COLS = 2   # col4 is narrow (260px) — 2 columns × 6 rows reads
+    _N_COLS = 1   # single column — full-width tiles so the governing-equation
+                  # panel has room to render. The reference design health
+                  # card is single-column for exactly this reason; two
+                  # narrow columns cannot hold a substituted formula.
                   # far better than 6 columns squeezed into that width;
                   # content and order are identical to CalcPage.tsx,
                   # only the grid geometry is adapted to the panel width
@@ -232,64 +290,108 @@ class StatusPanel(QWidget):
         l10_target = brg.get("L10_target", 20000)
         tn_derated = gbx.get("Tn_derated") or gbx.get("Tn") or 0
 
+        # Values feeding the governing equations shown in the formula panels.
+        D = payload.get("D", 0) or 0
+        N = payload.get("N", 0) or 0
+        P = payload.get("P", D) or D
+        rho = mat.get("rho", 0) or 0
+        Qt = cap.get("Qt", 0) or 0
+        tau = tor.get("tau", 0) or 0
+        Ts = tor.get("Ts", 0) or 0
+        Tn = tn_derated
+        L10 = brg.get("L10", 0) or 0
+        motor = pwr.get("motor", 0) or 0
+        motor_rated = pwr.get("motor_rated", 0) or 0
+        kwh_t = eff.get("kWh_t", 0) or 0
+
+        # Each entry: (label, value, req, ok, formula). The formula is the
+        # governing equation with the actual numbers substituted, so a
+        # reviewer can trace the value to its basis — matching the reference
+        # design health card's SHOW FORMULA panels.
         checks = [
             ("Capacity",
-             f"{_f(cap.get('Qt'), 1)} t/h",
+             f"{_f(Qt, 1)} t/h",
              f"{cap.get('req', payload.get('cap', 0))} t/h req",
-             cap.get("ok")),
+             cap.get("ok"),
+             f"Q = (π/4)·D²·P·N·φ·ρ·60·η_L\n"
+             f"D = {D:.3f} m   P = {P:.3f} m   N = {N:.0f} rpm\n"
+             f"φ = {fill_pct:.1f}%   ρ = {rho:.2f} t/m³\n"
+             f"→ Q = {_f(Qt, 1)} t/h   [CEMA §4]"),
 
             ("Shaft Stress",
-             f"{_f(tor.get('tau'), 1)} MPa",
+             f"{_f(tau, 1)} MPa",
              f"≤{sallow} MPa",
-             tor.get("shOk")),
+             tor.get("shOk"),
+             f"τ = 16·T / (π·d³)   (solid) or annular for pipe\n"
+             f"T = {_fi(Ts)} Nm\n"
+             f"→ τ = {_f(tau, 1)} MPa   (allow ≤ {sallow} MPa)"),
 
             ("Gearbox Torque",
-             f"{_fi(tor.get('Ts'))} Nm",
+             f"{_fi(Ts)} Nm",
              f"≤{_fi(tn_derated)} Nm",
-             gbx.get("tOk")),
+             gbx.get("tOk"),
+             f"T_shaft = 9550·P_shaft / N\n"
+             f"required = {_fi(Ts)} Nm\n"
+             f"gearbox rated (derated) = {_fi(Tn)} Nm"),
 
             ("Bearing L10",
-             f"{_fi(brg.get('L10'))} h",
+             f"{_fi(L10)} h",
              f"≥{_fi(l10_target)} h",
-             brg.get("ok")),
+             brg.get("ok"),
+             f"L10 = (C/P)^p · 10⁶ / (60·N)\n"
+             f"→ L10 = {_fi(L10)} h   (target ≥ {_fi(l10_target)} h)"),
 
             ("Vibration Risk",
              str(vri_label),
              "Low target",
-             vib_risk < 3),
+             vib_risk < 3,
+             f"VRI from N vs critical speed & fill\n"
+             f"index = {vib_risk:.2f}   → {vri_label}"),
 
             ("Energy kWh/t",
-             _f(eff.get("kWh_t", 0.0), 3),
+             _f(kwh_t, 3),
              "<1.0 optimal",
-             (eff.get("kWh_t") or 9) < 1),
+             (eff.get("kWh_t") or 9) < 1,
+             f"E = P_total / Q\n"
+             f"→ {_f(kwh_t, 3)} kWh/t   (optimal < 1.0)"),
 
             ("Fill φ (act)",
              f"{_f(fill_pct, 1)}%",
              "15–45% target",
-             15 <= fill_pct <= 45),
+             15 <= fill_pct <= 45,
+             f"φ_act = φ_max·f(θ)·feed_ratio  (CEMA)\n"
+             f"→ {_f(fill_pct, 1)}%   (target 15–45%)"),
 
             ("Utilisation",
              f"{_f(cap_util, 0)}%",
              "70–100% target",
-             70 <= cap_util <= 100),
+             70 <= cap_util <= 100,
+             f"util = Q_required / Q_capacity\n"
+             f"→ {_f(cap_util, 0)}%   (target 70–100%)"),
 
             ("Shaft Defl.",
              f"{_f(deflection * 1000, 2)} mm",
              f"≤{_f(defl_limit * 1000, 2)} mm",
-             deflection_ok),
+             deflection_ok,
+             f"δ = 5·w·L⁴ / (384·E·I)   (UDL, span)\n"
+             f"→ δ = {_f(deflection * 1000, 2)} mm  "
+             f"(limit {_f(defl_limit * 1000, 2)} mm)"),
 
             ("Motor",
-             f"{pwr.get('motor', '—')} kW",
-             f"{_f(pwr.get('motor_rated', 0), 1)} kW rated",
-             (pwr.get("motor") or 0) >= (pwr.get("motor_rated") or 0)),
+             f"{motor} kW",
+             f"{_f(motor_rated, 1)} kW rated",
+             (motor or 0) >= (motor_rated or 0),
+             f"P_motor = next standard ≥ P_shaft·SF\n"
+             f"required {_f(motor_rated, 1)} kW → selected {motor} kW"),
 
             ("Load Class",
              f"Class {mat.get('cls', '—')}",
              "",
-             True),
+             True,
+             ""),
         ]
 
-        n_fail = sum(1 for _, _, _, ok in checks if ok is False)
+        n_fail = sum(1 for _, _, _, ok, _ in checks if ok is False)
         if n_fail > 0:
             self._status_badge.setText(f"⛔ {n_fail} Critical")
             self._status_badge.setStyleSheet(
@@ -305,5 +407,5 @@ class StatusPanel(QWidget):
                 f"padding: 3px 10px; border: 1px solid {SUCCESS};" f"}}"
         )
 
-        for tile, (label, value, req, ok) in zip(self._tiles, checks):
-            tile.set_check(label, value, req, ok)
+        for tile, (label, value, req, ok, formula) in zip(self._tiles, checks):
+            tile.set_check(label, value, req, ok, formula)

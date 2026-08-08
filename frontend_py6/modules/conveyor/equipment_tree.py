@@ -1,34 +1,30 @@
 """
-modules/conveyor/equipment_tree.py — col1 equipment / project tree
+modules/conveyor/equipment_tree.py — critical-components design tree
 ═══════════════════════════════════════════════════════════════════════════
-Replaces the Placeholder that has occupied column 1 of the conveyor
-workspace since the restructure.
+A hierarchical breakdown of the current design's critical components and
+their status, modelled on the bucket-elevator equipment tree:
 
-Scope — and why it is session-scoped
-────────────────────────────────────
-core/api_client.py has save_project() / load_project(), but both carry an
-explicit note that the backend router (api/project_meta.py) is NOT mounted
-in backend/main.py — calling them today returns a 404 error dict. So there
-is no persistence to build against yet.
+    PROCESS
+      ├─ Material          Clinker  rho=1500 kg/m3
+      ├─ Capacity          36.5 t/h  req 30 t/h
+      ├─ Speed             75 rpm
+      └─ Fill              22.5%
+    MECHANICAL DESIGN
+      ├─ Screw Assembly (Diameter / Pitch / Flight / Shaft stress+defl)
+      ├─ Trough (plate / cover / weld from structural)
+      ├─ Drive (gearbox torque / motor)
+      ├─ Bearings (L10)
+      └─ Hangers
 
-Rather than ship a tree that appears to save and silently does not, this
-holds equipment for the current session only, and says so in the UI. Each
-entry is a complete input payload plus the headline results from when it
-was captured, so the real value — keeping several design variants side by
-side and switching between them — works now. When the projects route is
-mounted, add_project()/load happens here and the item model does not change.
+Each leaf shows a computed value and is coloured by status: green pass, red
+fail, amber advisory, neutral for informational rows. A section header goes
+red if any child fails.
 
-Interaction
-───────────
-    Capture      snapshot the sidebar's current inputs as a new item
-    (select)     load that item's inputs back into the sidebar and recalc
-    Duplicate    copy an item so a variant can be edited from it
-    Rename       F2 or double-click the tag
-    Delete       remove an item
-
-The panel never touches the sidebar directly. It emits load_requested with
-a payload and the workspace applies it, the same indirection the Family
-Designer uses — so the tree stays testable on its own.
+This is a DISPLAY of the /calculate result, not a store, and computes no
+engineering — capacity/torque/bearing come from the checks fields, geometry
+from the payload, trough sizing from the structural block. It replaces the
+earlier session-snapshot version; design capture/compare belongs with the
+separate save/load feature.
 """
 
 from __future__ import annotations
@@ -36,199 +32,184 @@ from __future__ import annotations
 from typing import Optional, Any
 
 from PySide6.QtWidgets import (
-    QWidget, QFrame, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
-    QTreeWidget, QTreeWidgetItem, QAbstractItemView, QMenu, QMessageBox,
+    QWidget, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QHeaderView,
+    QAbstractItemView,
 )
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QAction
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QBrush
 
 from core.theme import (
-    BG, PANEL, PANEL2, BORDER, TEXT, TEXT2, TEXT3, MUTED,
-    ACCENT, PRIMARY, SUCCESS, DANGER,
+    BG, PANEL, BORDER, TEXT, TEXT3, MUTED,
+    SUCCESS, WARNING, DANGER, ACCENT, PROCESS_ACCENT,
 )
 
-_ROLE_PAYLOAD = Qt.ItemDataRole.UserRole
-_ROLE_SUMMARY = Qt.ItemDataRole.UserRole + 1
+_PASS, _FAIL, _WARN, _INFO = "pass", "fail", "warn", "info"
+_STATUS_COLOUR = {_PASS: SUCCESS, _FAIL: DANGER, _WARN: WARNING, _INFO: TEXT}
 
 
-def _tag(n: int) -> str:
-    return f"SC-{n:03d}"
+def _f(v: Any, dp: int = 1) -> str:
+    if v is None:
+        return "—"
+    try:
+        return f"{float(v):.{dp}f}"
+    except (TypeError, ValueError):
+        return str(v)
+
+
+def _fi(v: Any) -> str:
+    if v is None:
+        return "—"
+    try:
+        return f"{int(round(float(v))):,}"
+    except (TypeError, ValueError):
+        return str(v)
+
+
+def _status_from_ok(ok: Optional[bool]) -> str:
+    return _INFO if ok is None else (_PASS if ok else _FAIL)
 
 
 class EquipmentTree(QWidget):
-    """Session equipment list for the conveyor workspace."""
-
-    #: Emitted with a stored input payload when the user selects an item.
-    load_requested = Signal(dict)
+    """Component-status tree for the current conveyor design."""
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self._seq = 0
-        self._loading = False        # guards select-during-programmatic-change
-
         self.setStyleSheet(f"QWidget {{ background-color: {BG}; }}")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(6)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(0)
 
         self._tree = QTreeWidget()
+        self._tree.setColumnCount(2)
         self._tree.setHeaderHidden(True)
-        self._tree.setSelectionMode(
-            QAbstractItemView.SelectionMode.SingleSelection
-        )
-        self._tree.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self._tree.customContextMenuRequested.connect(self._menu)
-        self._tree.itemSelectionChanged.connect(self._on_select)
-        self._tree.itemChanged.connect(self._on_renamed)
+        self._tree.setRootIsDecorated(True)
+        self._tree.setIndentation(14)
+        self._tree.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self._tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._tree.setStyleSheet(f"""
             QTreeWidget {{
                 background-color: {PANEL}; border: 1px solid {BORDER};
                 border-radius: 7px; color: {TEXT}; font-size: 16px;
                 outline: none; padding: 4px;
             }}
-            QTreeWidget::item {{ padding: 4px 2px; border-radius: 4px; }}
-            QTreeWidget::item:selected {{
-                background-color: rgba(74,158,255,0.20); color: {TEXT};
-            }}
-            QTreeWidget::item:hover {{ background-color: {PANEL2}; }}
+            QTreeWidget::item {{ padding: 2px 0; }}
         """)
+        header = self._tree.header()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setStretchLastSection(True)
+        self._tree.setColumnWidth(0, 130)
+        layout.addWidget(self._tree)
+        self._empty()
 
-        self._root = QTreeWidgetItem(self._tree, ["📁  Project (unsaved)"])
-        self._root.setForeground(0, QColor(ACCENT))
-        self._root.setFlags(Qt.ItemFlag.ItemIsEnabled)
-        self._root.setExpanded(True)
-        layout.addWidget(self._tree, 1)
+    def _empty(self) -> None:
+        self._tree.clear()
+        root = QTreeWidgetItem(self._tree, ["Run a calculation to populate", ""])
+        root.setForeground(0, QBrush(QColor(MUTED)))
+        root.setFlags(Qt.ItemFlag.ItemIsEnabled)
 
-        btns = QHBoxLayout()
-        btns.setSpacing(5)
-        self._capture = self._button("＋ Capture", SUCCESS)
-        self._capture.clicked.connect(self.capture_requested_clicked)
-        self._delete = self._button("🗑 Delete", DANGER)
-        self._delete.clicked.connect(self._delete_selected)
-        self._delete.setEnabled(False)
-        btns.addWidget(self._capture, 1)
-        btns.addWidget(self._delete, 1)
-        layout.addLayout(btns)
+    def _section(self, title: str, accent: str) -> QTreeWidgetItem:
+        item = QTreeWidgetItem(self._tree, [title, ""])
+        item.setForeground(0, QBrush(QColor(accent)))
+        f = item.font(0); f.setBold(True); item.setFont(0, f)
+        item.setFlags(Qt.ItemFlag.ItemIsEnabled)
+        item.setExpanded(True)
+        return item
 
-        note = QLabel(
-            "Session only — project save is not yet available on the backend."
-        )
-        note.setWordWrap(True)
-        note.setStyleSheet(f"color: {TEXT3}; font-size: 16px; border: none;")
-        layout.addWidget(note)
+    def _group(self, parent: QTreeWidgetItem, title: str) -> QTreeWidgetItem:
+        item = QTreeWidgetItem(parent, [title, ""])
+        f = item.font(0); f.setBold(True); item.setFont(0, f)
+        item.setForeground(0, QBrush(QColor(TEXT)))
+        item.setFlags(Qt.ItemFlag.ItemIsEnabled)
+        item.setExpanded(True)
+        return item
 
-    #: Emitted when Capture is pressed; the workspace supplies the payload.
-    capture_requested = Signal()
+    def _leaf(self, parent: QTreeWidgetItem, label: str, value: str,
+              status: str = _INFO) -> QTreeWidgetItem:
+        item = QTreeWidgetItem(parent, [label, value])
+        item.setForeground(0, QBrush(QColor(TEXT)))
+        item.setForeground(1, QBrush(QColor(_STATUS_COLOUR.get(status, TEXT))))
+        f = item.font(1); f.setBold(True); item.setFont(1, f)
+        item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        item.setFlags(Qt.ItemFlag.ItemIsEnabled)
+        if status == _FAIL:
+            parent.setForeground(0, QBrush(QColor(DANGER)))
+        return item
 
-    def capture_requested_clicked(self) -> None:
-        self.capture_requested.emit()
-
-    def _button(self, text: str, colour: str) -> QPushButton:
-        b = QPushButton(text)
-        b.setFixedHeight(24)
-        b.setCursor(Qt.CursorShape.PointingHandCursor)
-        b.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {BG}; color: {colour};
-                border: 1px solid {colour}66; border-radius: 4px;
-                font-size: 16px; font-weight: 700;
-            }}
-            QPushButton:hover:enabled {{ background-color: {colour}22; }}
-            QPushButton:disabled {{ color: {TEXT3}; border: 1px solid {BORDER}; }}
-        """)
-        return b
-
-    # ── items ─────────────────────────────────────────────────────────────
-
-    def add_item(self, payload: dict, results: Optional[dict] = None) -> None:
-        """Store a snapshot. payload is copied — later sidebar edits must
-        not mutate an item already captured."""
-        self._seq += 1
-        item = QTreeWidgetItem(self._root, [_tag(self._seq)])
-        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
-        item.setData(0, _ROLE_PAYLOAD, dict(payload))
-        self._apply_summary(item, payload, results)
-        self._root.setExpanded(True)
-        self._loading = True
-        self._tree.setCurrentItem(item)
-        self._loading = False
-        self._delete.setEnabled(True)
-
-    def _apply_summary(self, item: QTreeWidgetItem, payload: dict,
-                       results: Optional[dict]) -> None:
-        D = payload.get("D")
-        L = payload.get("L")
-        N = payload.get("N")
-        bits = []
-        if D is not None:
-            bits.append(f"⌀{float(D) * 1000:.0f}")
-        if L is not None:
-            bits.append(f"{float(L):g} m")
-        if N is not None:
-            bits.append(f"{float(N):g} rpm")
-        cap = ((results or {}).get("cap") or {}).get("Qt")
-        if cap is not None:
-            bits.append(f"{float(cap):.1f} t/h")
-        summary = " · ".join(bits)
-        item.setData(0, _ROLE_SUMMARY, summary)
-        item.setToolTip(0, summary or "No results captured")
-        ok = ((results or {}).get("cap") or {}).get("ok")
-        if ok is not None:
-            item.setForeground(0, QColor(SUCCESS if ok else DANGER))
-
-    # ── interaction ───────────────────────────────────────────────────────
-
-    def _on_select(self) -> None:
-        item = self._tree.currentItem()
-        self._delete.setEnabled(item is not None and item is not self._root)
-        if self._loading or item is None or item is self._root:
+    def set_data(self, result: dict, payload: Optional[dict] = None) -> None:
+        if not result or result.get("error"):
+            self._empty()
             return
-        payload = item.data(0, _ROLE_PAYLOAD)
-        if isinstance(payload, dict):
-            self.load_requested.emit(dict(payload))
+        payload = payload or {}
+        self._tree.clear()
 
-    def _on_renamed(self, item: QTreeWidgetItem, _col: int) -> None:
-        # Empty tags make the list unreadable; restore something rather than
-        # leaving a blank row.
-        if item is not self._root and not item.text(0).strip():
-            item.setText(0, _tag(self._tree.indexOfTopLevelItem(item) + 1))
+        cap = result.get("cap", {}) or {}
+        tor = result.get("tor", {}) or {}
+        gbx = result.get("gbx_r", {}) or {}
+        brg = result.get("brg_r", {}) or {}
+        pwr = result.get("pwr", {}) or {}
+        mat = result.get("mat", {}) or {}
+        struct = result.get("structural", {}) or {}
+        hgr = result.get("hgr", {}) or {}
 
-    def _menu(self, pos) -> None:
-        item = self._tree.itemAt(pos)
-        if item is None or item is self._root:
-            return
-        menu = QMenu(self)
-        menu.setStyleSheet(
-            f"QMenu {{ background-color: {PANEL2}; color: {TEXT}; "
-            f"border: 1px solid {BORDER}; font-size: 16px; }}"
-            f"QMenu::item:selected {{ background-color: {PRIMARY}; }}"
-        )
-        act_dup = QAction("Duplicate", self)
-        act_dup.triggered.connect(lambda: self._duplicate(item))
-        act_ren = QAction("Rename", self)
-        act_ren.triggered.connect(lambda: self._tree.editItem(item, 0))
-        act_del = QAction("Delete", self)
-        act_del.triggered.connect(lambda: self._delete_item(item))
-        for a in (act_dup, act_ren, act_del):
-            menu.addAction(a)
-        menu.exec(self._tree.viewport().mapToGlobal(pos))
+        # PROCESS
+        proc = self._section("PROCESS", PROCESS_ACCENT)
+        rho = mat.get("rho")
+        self._leaf(proc, "Material",
+                   f"{mat.get('name', payload.get('mat', '—'))}  ρ={_fi((rho or 0) * 1000)} kg/m³")
+        self._leaf(proc, "Capacity",
+                   f"{_f(cap.get('Qt'), 1)} t/h  req {cap.get('req', payload.get('cap', '—'))}",
+                   _status_from_ok(cap.get("ok")))
+        self._leaf(proc, "Speed", f"{_f(payload.get('N'), 0)} rpm")
+        fill = cap.get("fill_actual") or cap.get("fill") or 0
+        self._leaf(proc, "Fill fraction", f"{_f(fill * 100, 1)}%",
+                   _PASS if 0.15 <= fill <= 0.45 else _WARN)
+        self._leaf(proc, "Inclination", f"{_f(payload.get('ang'), 0)}°")
 
-    def _duplicate(self, item: QTreeWidgetItem) -> None:
-        payload = item.data(0, _ROLE_PAYLOAD)
-        if isinstance(payload, dict):
-            self.add_item(payload)
+        # MECHANICAL DESIGN
+        mech = self._section("MECHANICAL DESIGN", ACCENT)
 
-    def _delete_selected(self) -> None:
-        item = self._tree.currentItem()
-        if item is not None and item is not self._root:
-            self._delete_item(item)
+        screw = self._group(mech, "Screw Assembly")
+        D = payload.get("D", 0) or 0
+        P = payload.get("P", D) or D
+        self._leaf(screw, "Diameter", f"Ø{_fi(D * 1000)} mm")
+        self._leaf(screw, "Pitch", f"{_fi(P * 1000)} mm  ({_f(P / D if D else 0, 2)}×D)")
+        self._leaf(screw, "Flight thickness", f"{_fi((payload.get('ft', 0) or 0) * 1000)} mm")
+        self._leaf(screw, "Shaft stress",
+                   f"{_f(tor.get('tau'), 1)} MPa  ≤{payload.get('sallow', 40)}",
+                   _status_from_ok(tor.get("shOk")))
+        defl = (result.get("deflection") or 0) * 1000
+        defl_lim = (result.get("defl_limit") or 0.01) * 1000
+        self._leaf(screw, "Shaft deflection",
+                   f"{_f(defl, 2)} mm  ≤{_f(defl_lim, 2)}",
+                   _status_from_ok(result.get("deflection_ok")))
 
-    def _delete_item(self, item: QTreeWidgetItem) -> None:
-        self._root.removeChild(item)
-        if self._root.childCount() == 0:
-            self._delete.setEnabled(False)
+        trough = self._group(mech, "Trough")
+        self._leaf(trough, "Plate thickness", f"{_fi(struct.get('t_plate'))} mm" if struct else "—")
+        self._leaf(trough, "Cover thickness", f"{_fi(struct.get('t_cover'))} mm" if struct else "—")
+        self._leaf(trough, "Weld size", f"{_fi(struct.get('weld_size'))} mm" if struct else "—")
 
-    def count(self) -> int:
-        return self._root.childCount()
+        drive = self._group(mech, "Drive")
+        self._leaf(drive, "Gearbox", f"{payload.get('gbx', '—')}")
+        tn = gbx.get("Tn_derated") or gbx.get("Tn")
+        self._leaf(drive, "Gearbox torque",
+                   f"{_fi(tor.get('Ts'))} ≤ {_fi(tn)} Nm",
+                   _status_from_ok(gbx.get("tOk")))
+        motor = pwr.get("motor"); motor_rated = pwr.get("motor_rated")
+        self._leaf(drive, "Motor", f"{motor} kW  (req {_f(motor_rated, 1)})",
+                   _PASS if (motor or 0) >= (motor_rated or 0) else _FAIL)
+
+        bearings = self._group(mech, "Bearings")
+        self._leaf(bearings, payload.get("brg", "Bearing"),
+                   f"L10 {_fi(brg.get('L10'))} h", _status_from_ok(brg.get("ok")))
+
+        hang = self._group(mech, "Hangers")
+        h_count = hgr.get("count") or struct.get("n_supports") or "—"
+        self._leaf(hang, "Count", f"{h_count}")
+        if struct.get("R_kN") is not None:
+            self._leaf(hang, "Reaction", f"{_f(struct.get('R_kN'), 1)} kN")
+
+        for i in range(self._tree.topLevelItemCount()):
+            top = self._tree.topLevelItem(i)
+            if top is not None:
+                top.setExpanded(True)
